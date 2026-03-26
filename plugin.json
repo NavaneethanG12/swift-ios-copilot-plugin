@@ -1,0 +1,8 @@
+{
+  "name": "swift-ios-dev",
+  "displayName": "Swift & iOS Developer",
+  "description": "A Copilot plugin for Swift and iOS development. Provides code review skills, an iOS debugging guide, an iOS architect planning agent, and a Swift code reviewer with handoff workflows.",
+  "version": "1.0.0",
+  "publisher": "local",
+  "keywords": ["swift", "ios", "xcode", "uikit", "swiftui", "macos"]
+}
