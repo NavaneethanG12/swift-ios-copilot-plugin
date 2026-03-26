@@ -1,8 +1,27 @@
 {
   "name": "swift-ios-dev",
   "displayName": "Swift & iOS Developer",
-  "description": "A Copilot plugin for Swift and iOS development. Provides code review skills, an iOS debugging guide, an iOS architect planning agent, and a Swift code reviewer with handoff workflows.",
-  "version": "1.0.0",
+  "description": "Token-efficient Copilot plugin for iOS/iPadOS/macOS development. Orchestrator agent classifies prompts, restructures them for clarity, and routes to 7 specialist agents backed by 24 compact skills.",
+  "version": "4.1.0",
   "publisher": "local",
-  "keywords": ["swift", "ios", "xcode", "uikit", "swiftui", "macos"]
+  "keywords": [
+    "swift", "ios", "ipados", "macos", "xcode", "swiftui", "uikit",
+    "mvvm", "tca", "clean-architecture", "dependency-injection",
+    "networking", "urlsession", "swiftdata", "core-data", "keychain",
+    "memory-management", "arc", "retain-cycle", "instruments",
+    "crash-diagnosis", "concurrency", "async-await", "sendable", "actor",
+    "testing", "swift-testing", "xctest", "mocking",
+    "security", "owasp", "ssl-pinning", "biometrics", "cryptokit",
+    "accessibility", "voiceover", "dynamic-type",
+    "localization", "string-catalog", "rtl",
+    "performance", "launch-time", "scroll-performance",
+    "ci-cd", "xcode-cloud", "github-actions", "fastlane",
+    "app-store", "testflight", "code-signing",
+    "push-notifications", "apns", "storekit", "in-app-purchase",
+    "deep-linking", "universal-links", "app-clips",
+    "background-tasks", "bgtaskscheduler",
+    "widgetkit", "app-extensions", "app-groups",
+    "design-system", "oslog", "error-handling",
+    "platform-adaptation", "catalyst", "stage-manager"
+  ]
 }

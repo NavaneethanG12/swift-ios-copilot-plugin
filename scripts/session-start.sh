@@ -32,18 +32,41 @@ set -euo pipefail
 # characters and special symbols are printed literally.
 # ---------------------------------------------------------------------------
 cat <<'EOF'
-╔══════════════════════════════════════════════════════════╗
-║          Swift & iOS Developer Plugin  v1.0.0           ║
-╠══════════════════════════════════════════════════════════╣
-║  Skills  (type / in chat to invoke):                     ║
-║    /swift-code-review  — audit Swift files for issues    ║
-║    /ios-debugging      — diagnose crashes & build errors ║
-║                                                          ║
-║  Agents  (select from the agent picker):                 ║
-║    ios-architect   — plan features & architecture        ║
-║    swift-reviewer  — review code with handoff workflow   ║
-║                                                          ║
-║  Auto-formatting: edited .swift files are formatted      ║
-║  with swift-format on save (if installed).               ║
-╚══════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════╗
+║           Swift & iOS Developer Plugin  v4.1.0              ║
+╠══════════════════════════════════════════════════════════════╣
+║                                                              ║
+║  ★ Select "ios-copilot" from the agent picker ★             ║
+║    It's the root orchestrator — just type your prompt        ║
+║    and it will restructure it and route to the right agent.  ║
+║                                                              ║
+║  Skills  (24 — type / in chat to invoke directly):           ║
+║  ── Build ──                                                ║
+║    /project-scaffolding   /swiftui-development               ║
+║    /networking            /data-persistence                  ║
+║    /architecture-patterns /design-system                     ║
+║  ── Quality ──                                              ║
+║    /swift-code-review     /testing                           ║
+║    /ios-debugging          /crash-diagnosis                  ║
+║    /memory-management      /swift-concurrency                ║
+║    /performance-optimization                                 ║
+║  ── Ship ──                                                 ║
+║    /ios-security     /accessibility    /localization          ║
+║    /ci-cd            /app-store-submission                    ║
+║  ── Platform ──                                             ║
+║    /platform-adaptation   /push-notifications                ║
+║    /storekit              /deep-linking                      ║
+║    /background-tasks      /widgets-extensions                ║
+║                                                              ║
+║  Agents (8):                                                ║
+║    ios-copilot ★    — orchestrator (start here)              ║
+║    app-builder      — scaffold & build apps                  ║
+║    ios-architect    — plan architecture                       ║
+║    swift-reviewer   — review code                            ║
+║    test-engineer    — write tests                            ║
+║    security-auditor — audit vulnerabilities                   ║
+║    crash-analyst    — diagnose crashes                        ║
+║    memory-profiler  — fix memory issues                      ║
+║                                                              ║
+╚══════════════════════════════════════════════════════════════╝
 EOF

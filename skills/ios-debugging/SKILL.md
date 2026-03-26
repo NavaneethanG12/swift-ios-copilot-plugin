@@ -11,40 +11,7 @@ user-invocable: true
 
 # iOS Debugging Guide
 
-## About this skill
-
-This skill provides a structured, repeatable debugging workflow for iOS and
-macOS apps. It covers the five most common failure categories and includes
-specific Xcode tool references, command-line snippets, and a companion
-[debug checklist](./debug-checklist.md) for quick failure classification.
-
-**When to invoke:**
-- An app is crashing in development, TestFlight, or production.
-- Auto Layout constraint warnings are filling the console.
-- A network request is failing or returning unexpected data.
-- Memory usage grows unboundedly during a session.
-- An Xcode build is failing with compiler, linker, or signing errors.
-
-**What this skill does NOT do:**
-- It does not access your Xcode project or run commands automatically.
-- It does not symbolicate crash logs for you — it explains how to do so.
-- It focuses on native iOS/macOS development (UIKit, SwiftUI, AppKit); it
-  does not cover React Native, Flutter, or other cross-platform stacks.
-
-**Companion file:** [debug-checklist.md](./debug-checklist.md) — use this
-first to quickly classify which section of the guide applies.
-
-**Key Xcode tools referenced in this guide:**
-| Tool | How to open |
-|---|---|
-| View Debugger | Debug menu → View Debugging → Capture View Hierarchy, or ⌘⌥D |
-| Memory Graph Debugger | Debug bar → Memory Graph button (⌥⌘M) |
-| Instruments | Xcode menu → Open Developer Tool → Instruments |
-| Address Sanitizer | Scheme editor → Diagnostics → Address Sanitizer |
-| Zombie Objects | Scheme editor → Diagnostics → Zombie Objects |
-| Accessibility Inspector | Xcode menu → Open Developer Tool → Accessibility Inspector |
-
----
+Structured debugging workflow. Use [debug-checklist.md](./debug-checklist.md) to classify, then follow the relevant section.
 
 Follow this structured process to diagnose and resolve iOS/macOS issues.
 
@@ -122,33 +89,12 @@ then jump to the relevant section below.
 
 ---
 
-## Useful debugging commands — quick reference
+## Key debugging commands
 
-```bash
-# Symbolicate a crash log on the command line
-xcrun atos -arch arm64 -o path/to/App.app.dSYM/Contents/Resources/DWARF/App \
-           -l 0x100000000 0x00000001000abc12
+- `xcrun atos -arch arm64 -o <dSYM> -l <load-addr> <addr>` — symbolicate
+- `codesign -d --entitlements - App.app` — check entitlements
+- `otool -L App.app/App` — list linked frameworks
+- `plutil -p App.app/Info.plist` — dump Info.plist
+- `xcrun simctl spawn booted log stream --predicate 'process == "YourApp"'` — device console
 
-# Print entitlements embedded in an app binary
-codesign -d --entitlements - path/to/App.app
-
-# List frameworks and libraries linked into a binary
-otool -L path/to/App.app/App
-
-# Check which provisioning profile is embedded
-security cms -D -i path/to/App.app/embedded.mobileprovision | \
-  plutil -convert xml1 - -o -
-
-# Dump the Info.plist of a built app
-plutil -p path/to/App.app/Info.plist
-
-# Tail the device console (requires Xcode command-line tools)
-xcrun simctl spawn booted log stream --predicate 'process == "YourApp"'
-```
-
-## Further reading
-
-- [Understanding and Analyzing Application Crash Reports (Apple)](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report)
-- [Diagnosing Memory, Thread, and Crash Issues Early (Apple)](https://developer.apple.com/documentation/xcode/diagnosing-memory-thread-and-crash-issues-early)
-- [Viewing the Memory Graph (Apple)](https://developer.apple.com/documentation/xcode/gathering-information-about-memory-use)
-- [WWDC — Detect and diagnose memory issues](https://developer.apple.com/videos/play/wwdc2021/10180/)
+Cross-reference: `/crash-diagnosis` for crash reports, watchdog kills, system terminations. `/memory-management` for leaks and ARC. `/swift-concurrency` for data races and actor issues.

@@ -11,35 +11,7 @@ user-invocable: true
 
 # Swift Code Review
 
-## About this skill
-
-This skill turns Copilot into a senior Swift engineer performing a structured
-code review. It covers five review dimensions — safety, correctness, Swift
-idioms, performance, and API naming — and produces actionable, line-level
-feedback in a consistent format.
-
-**When to invoke:**
-- You want a thorough audit of a Swift file before opening a pull request.
-- You need help spotting memory-management or concurrency bugs.
-- You are onboarding to an existing Swift codebase and want a quality overview.
-- You want to enforce the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
-  across a module.
-
-**What this skill does NOT do:**
-- It does not run the compiler or static analyser; it reviews the source text.
-- It does not refactor the entire file — it identifies and explains issues and
-  provides targeted fix snippets.
-- It does not enforce project-specific style beyond the Swift community standard.
-
-**Related resources:**
-- [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/)
-- [SE-0310 Effectful Read-only Properties](https://github.com/apple/swift-evolution/blob/main/proposals/0310-effectful-readonly-properties.md)
-- [Swift Concurrency documentation](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
-
----
-
-You are a senior Swift engineer performing a thorough code review. Follow
-these steps whenever this skill is invoked.
+Perform a structured code review across 7 dimensions. Produce actionable, line-level feedback.
 
 ## Review checklist
 
@@ -65,12 +37,32 @@ these steps whenever this skill is invoked.
 - Favour `guard` for early exits over nested `if` chains.
 - Use `defer` for balanced resource cleanup.
 
-### 4. Performance
+### 4. Memory management
+- Identify retain cycles: stored closures capturing `self` strongly, strong
+  delegate properties, `Timer` / `CADisplayLink` retaining targets.
+- Flag `unowned` references where the lifetime guarantee is not provably
+  correct — prefer `weak` in ambiguous cases.
+- Check that `deinit` cleans up observers, timers, and subscriptions.
+- Flag unsafe pointer escapes: `UnsafePointer` must not outlive its scoped
+  closure (`withUnsafePointer`, `withUnsafeBytes`, etc.).
+- Verify `Unmanaged.passRetained` is balanced with `takeRetainedValue`.
+- Look for tight loops creating Objective-C objects without `autoreleasepool`.
+
+### 5. Performance
 - Spot unnecessary `Array` copies where `Sequence` or `Collection` slices suffice.
 - Flag synchronous work on the main thread that should move to a background task.
 - Identify repeated string-to-type conversions that should be cached.
+- Check for unbounded caches (image caches, data caches) without eviction.
 
-### 5. API Design Guidelines
+### 6. Concurrency
+- Verify `@MainActor` on all types/methods that mutate UI state.
+- Check that non-`Sendable` types are not sent across actor boundaries.
+- Flag `DispatchSemaphore.wait()` or blocking calls on the main thread.
+- Verify actor reentrancy: state must be re-checked after `await` suspension.
+- Ensure `Task` handles are stored for cancellation when appropriate.
+- Flag fire-and-forget `Task {}` blocks that ignore errors silently.
+
+### 7. API Design Guidelines
 - Types, protocols, and enum cases: UpperCamelCase.
 - Methods, properties, local variables: lowerCamelCase.
 - Boolean properties should read as assertions (`isLoading`, `hasError`).
@@ -100,46 +92,4 @@ improvements the author should prioritise.
 | **Warning** | Bad practice, likely bug, or clear maintainability problem | Strongly recommended |
 | **Suggestion** | Style, naming, or minor improvement | Optional |
 
-## Common Swift pitfalls — quick reference
-
-### Retain cycles
-```swift
-// ❌ Strong capture of self in a long-lived closure
-class ViewModel {
-    var onUpdate: (() -> Void)?
-    func setup() {
-        onUpdate = { self.refresh() }  // retains self
-    }
-}
-
-// ✅ Weak capture
-onUpdate = { [weak self] in self?.refresh() }
-```
-
-### Force-unwrap
-```swift
-// ❌ Crashes if nil
-let url = URL(string: userInput)!
-
-// ✅ Safe with a fallback
-guard let url = URL(string: userInput) else { return }
-```
-
-### Main-actor isolation
-```swift
-// ❌ Mutates UI state from a background task
-Task.detached { self.label.text = result }
-
-// ✅ Explicitly hop to the main actor
-Task { @MainActor in self.label.text = result }
-```
-
-### Codable key mismatch
-```swift
-// ❌ JSON key "user_name" won't decode into `userName` by default
-struct User: Codable { var userName: String }
-
-// ✅ Provide a CodingKeys enum or set keyDecodingStrategy
-let decoder = JSONDecoder()
-decoder.keyDecodingStrategy = .convertFromSnakeCase
-```
+Cross-reference: `/memory-management` for ARC/retain-cycle details, `/crash-diagnosis` for crash analysis, `/swift-concurrency` for async/actor patterns.
