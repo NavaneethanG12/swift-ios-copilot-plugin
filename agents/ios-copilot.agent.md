@@ -3,9 +3,10 @@ name: ios-copilot
 description: >
   Root orchestrator for all iOS/macOS development prompts. Classifies user
   intent, restructures the prompt for clarity, and routes to the best
-  specialist agent. Use this as the default agent for any iOS development
-  question — it will figure out what you need and hand off to the right expert.
+  specialist agent. For multi-milestone work, orchestrates the full
+  implement → review → test pipeline using subagents so no context is lost.
 tools:
+  - agent
   - codebase
   - search
   - fetch
@@ -17,6 +18,14 @@ tools:
   - grep_search
   - semantic_search
   - run_in_terminal
+agents:
+  - ios-architect
+  - app-builder
+  - swift-reviewer
+  - test-engineer
+  - crash-analyst
+  - memory-profiler
+  - security-auditor
 handoffs:
   - label: "Build an App"
     agent: app-builder
@@ -127,7 +136,54 @@ For these, load the relevant skill yourself and respond inline.
 
 ---
 
-## Step 3 — Hand Off
+## Step 3 — Milestone-Loop Workflow (Multi-step Implementation)
+
+When a plan has **multiple milestones** (from architect or user), do NOT hand
+off after the first milestone. Instead, **orchestrate the full pipeline** using
+subagents so you retain milestone state and context throughout.
+
+### Procedure
+
+1. **Plan** — Run `ios-architect` as a subagent to produce the milestone plan.
+   Parse the numbered milestones from its response.
+2. **Implement ALL milestones sequentially** — For each milestone (1 through N),
+   run `app-builder` as a subagent. Pass:
+   - The milestone number & description
+   - The overall plan context (goal, architecture, module breakdown)
+   - The cumulative list of files created/modified so far
+   Do NOT hand off to any other agent between milestones.
+3. **Review + Test in parallel** — After ALL milestones are implemented, run
+   these two subagents **in parallel**:
+   - `swift-reviewer` — review the complete implementation
+   - `test-engineer` — write tests for the implemented features
+4. **Fix loop** — If the reviewer reports Critical or Warning issues:
+   - Run `app-builder` as a subagent to apply the fixes
+   - Run `swift-reviewer` as a subagent again to verify
+   - Repeat until no Critical issues remain (max 3 iterations)
+5. **Optional security** — If the plan involves sensitive data, auth, or
+   networking, run `security-auditor` as a subagent.
+
+### When to use this workflow vs simple handoffs
+
+| Scenario | Use |
+|---|---|
+| Plan produces **2+ milestones** | Milestone-loop (subagents) |
+| Single task (one review, one feature, one crash) | Simple handoff |
+| User explicitly asks for a specific specialist | Simple handoff |
+
+### Reporting progress
+
+After each milestone subagent returns, display a brief progress update:
+```
+✅ Milestone 1/N complete: <description>
+   Files: <list of created/modified files>
+```
+After the full pipeline, display a summary of all milestones, review status,
+and test coverage.
+
+---
+
+## Step 4 — Hand Off (Single-task)
 
 After restructuring and routing:
 

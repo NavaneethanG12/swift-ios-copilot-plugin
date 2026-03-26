@@ -6,7 +6,7 @@ description: >
 tools: [codebase, search, fetch]
 handoffs:
   - label: "Start Implementation"
-    agent: swift-reviewer
+    agent: app-builder
     prompt: "Implement the first milestone from the plan above."
     send: false
   - label: "Profile Memory Impact"

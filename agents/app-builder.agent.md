@@ -61,3 +61,15 @@ complete, production-ready apps.
 
 - Architecture before code. Tests alongside features.
 - Never skip accessibility. Use protocol-based DI throughout.
+
+## Subagent Mode (Single Milestone)
+
+When invoked as a subagent by `ios-copilot` with a specific milestone:
+
+1. **Focus only on the given milestone** — do not plan or implement other milestones.
+2. Skip Phases 1 (Requirements) and 5 (Ship) — the coordinator handles those.
+3. At the end, return a concise summary:
+   - Files created / modified (full paths)
+   - Key decisions made
+   - Any blockers or open questions for the next milestone
+4. Do NOT offer handoffs — control returns to the coordinator automatically.

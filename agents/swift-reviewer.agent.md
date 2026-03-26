@@ -21,6 +21,10 @@ handoffs:
     agent: crash-analyst
     prompt: "Check for crash reports related to the patterns found in review."
     send: false
+  - label: "Continue Implementation"
+    agent: app-builder
+    prompt: "Continue implementing the next milestone. Apply the review fixes above first, then proceed to the next unfinished milestone."
+    send: false
   - label: "Build Feature"
     agent: app-builder
     prompt: "Continue building the feature after fixes are applied."
