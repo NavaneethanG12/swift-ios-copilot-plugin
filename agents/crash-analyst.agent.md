@@ -3,10 +3,10 @@ name: crash-analyst
 description: >
   Crash-report analysis agent. Reads crash logs, symbolicates,
   classifies (§A–§H), produces root-cause diagnosis with remediation.
-tools: [codebase, search, fetch]
+tools: [read, search, codebase, fetch]
 handoffs:
   - label: "Fix the Crash"
-    agent: swift-reviewer
+    agent: app-builder
     prompt: "Apply the crash fix identified in the diagnosis above."
     send: false
   - label: "Profile Memory"

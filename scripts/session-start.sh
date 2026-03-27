@@ -40,33 +40,25 @@ cat <<'EOF'
 ║    It's the root orchestrator — just type your prompt        ║
 ║    and it will restructure it and route to the right agent.  ║
 ║                                                              ║
-║  Skills  (24 — type / in chat to invoke directly):           ║
-║  ── Build ──                                                ║
-║    /project-scaffolding   /swiftui-development               ║
-║    /networking            /data-persistence                  ║
-║    /architecture-patterns /design-system                     ║
-║  ── Quality ──                                              ║
-║    /swift-code-review     /testing                           ║
-║    /ios-debugging          /crash-diagnosis                  ║
-║    /memory-management      /swift-concurrency                ║
-║    /performance-optimization                                 ║
-║  ── Ship ──                                                 ║
-║    /ios-security     /accessibility    /localization          ║
-║    /ci-cd            /app-store-submission                    ║
-║  ── Platform ──                                             ║
-║    /platform-adaptation   /push-notifications                ║
-║    /storekit              /deep-linking                      ║
-║    /background-tasks      /widgets-extensions                ║
-║                                                              ║
-║  Agents (8):                                                ║
-║    ios-copilot ★    — orchestrator (start here)              ║
-║    app-builder      — scaffold & build apps                  ║
-║    ios-architect    — plan architecture                       ║
-║    swift-reviewer   — review code                            ║
-║    test-engineer    — write tests                            ║
-║    security-auditor — audit vulnerabilities                   ║
-║    crash-analyst    — diagnose crashes                        ║
-║    memory-profiler  — fix memory issues                      ║
-║                                                              ║
 ╚══════════════════════════════════════════════════════════════╝
 EOF
+
+# ---------------------------------------------------------------------------
+# Check if the project has a codebase map. If not, nudge the user.
+# ---------------------------------------------------------------------------
+WORKSPACE_ROOT="${VSCODE_WORKSPACE_FOLDER:-$(pwd)}"
+MAP_FILE="${WORKSPACE_ROOT}/.github/instructions/codebase-map.instructions.md"
+
+if [ ! -f "$MAP_FILE" ]; then
+  cat <<'MAPEOF'
+
+⚠️  No codebase map found for this project.
+   Agents will scan all files on every prompt (slow for large projects).
+
+   To generate one, tell ios-copilot:
+     "generate the codebase map for this project"
+
+   This creates .github/instructions/codebase-map.instructions.md
+   so agents only read files relevant to each task.
+MAPEOF
+fi
