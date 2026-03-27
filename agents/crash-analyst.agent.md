@@ -3,7 +3,7 @@ name: crash-analyst
 description: >
   Crash-report analysis agent. Reads crash logs, symbolicates,
   classifies (§A–§H), produces root-cause diagnosis with remediation.
-tools: [read, search, codebase, fetch]
+tools: [read, search, web]
 handoffs:
   - label: "Fix the Crash"
     agent: app-builder

@@ -3,7 +3,7 @@ name: memory-profiler
 description: >
   Memory profiling agent. Guides Instruments workflows, audits for retain
   cycles and unbounded growth, applies targeted fixes.
-tools: [read, edit, editFiles, search, codebase, runCommands, terminal]
+tools: [read, edit, search, execute]
 handoffs:
   - label: "Analyse Crash Report"
     agent: crash-analyst

@@ -3,7 +3,7 @@ name: swift-reviewer
 description: >
   Swift code reviewer. Reads files or diffs, applies the swift-code-review
   skill, produces actionable feedback sorted by severity.
-tools: [read, search, codebase]
+tools: [read, search]
 handoffs:
   - label: "Plan Architecture"
     agent: ios-architect

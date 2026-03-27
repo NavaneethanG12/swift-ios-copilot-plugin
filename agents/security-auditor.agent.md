@@ -3,7 +3,7 @@ name: security-auditor
 description: >
   iOS security audit agent. Scans for vulnerabilities, implements Keychain
   storage, SSL pinning, biometrics. OWASP Mobile Top 10 compliance.
-tools: [read, search, codebase, runCommands, terminal]
+tools: [read, search, execute]
 handoffs:
   - label: "Fix Architecture"
     agent: ios-architect

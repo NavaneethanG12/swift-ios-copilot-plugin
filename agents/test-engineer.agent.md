@@ -3,7 +3,7 @@ name: test-engineer
 description: >
   Test strategy and implementation agent. Designs test plans, writes
   unit/UI/integration tests, creates mocks, ensures coverage targets.
-tools: [read, edit, editFiles, search, codebase, runCommands, terminal]
+tools: [read, edit, search, execute]
 handoffs:
   - label: "Architecture"
     agent: ios-architect

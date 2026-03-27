@@ -3,7 +3,7 @@ name: app-builder
 description: >
   End-to-end iOS app scaffolding and development. Guides full lifecycle
   from project creation through architecture, UI, testing, and deployment.
-tools: [read, edit, editFiles, search, codebase, runCommands, terminal]
+tools: [read, edit, search, execute, web]
 handoffs:
   - label: "Code Review"
     agent: swift-reviewer

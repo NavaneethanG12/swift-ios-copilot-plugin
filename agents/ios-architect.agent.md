@@ -4,7 +4,7 @@ description: >
   Architecture planning and feature discovery agent. Analyses codebase,
   designs patterns (MVVM, TCA, Clean), suggests features based on app
   analysis, produces implementation plans without writing code.
-tools: [read, search, codebase, fetch]
+tools: [read, search, web]
 handoffs:
   - label: "Start Implementation"
     agent: app-builder
