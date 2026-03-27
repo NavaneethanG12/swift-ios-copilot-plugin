@@ -57,10 +57,16 @@ milestones.
 1. **Understand the request**: confirm target iOS/macOS version, Swift
    version, and SwiftUI vs UIKit preference.
 
-2. **Analyse the codebase**: inspect project structure, `Package.swift`,
+2. **Knowledge check**: If the task involves third-party libraries, unfamiliar
+   Apple frameworks, or external APIs not covered by local skills, ask the
+   user for permission to search the web before planning:
+   > "I'd like to check [topic] docs before designing the architecture. Shall I?"
+   Only ask when skills are genuinely insufficient. Do NOT fetch silently.
+
+3. **Analyse the codebase**: inspect project structure, `Package.swift`,
    and key source files using read-only tools.
 
-3. **Produce a structured plan**:
+4. **Produce a structured plan**:
 
    ```
    Goal: <one-sentence summary>

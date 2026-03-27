@@ -66,12 +66,29 @@ to switch agents. You call the agent, it does the work, you report the result.
 
 For each user request:
 1. Classify the intent using the table below.
-2. Use the matched agent as a subagent. Pass a clear task description including
+2. **Knowledge check** (before calling the agent):
+   - Check if the loaded skills cover the topic fully.
+   - If the task involves any of these, web knowledge may be needed:
+     - A **third-party library or SDK** not covered in skills (e.g., Firebase, Alamofire, Realm, MapKit advanced features)
+     - A **new or updated Apple API** (iOS 18+, visionOS, new frameworks)
+     - A **specific API integration** (REST endpoint, GraphQL schema, OAuth provider)
+     - A **design pattern or technique** not in the architecture-patterns skill
+     - The user mentions a **URL, documentation link, or "check the docs"**
+   - If web knowledge would help, **ASK the user for permission first**:
+     > "I'd like to check the web for [specific topic] before starting. This would help me [reason]. Shall I go ahead?"
+   - Wait for user approval. If approved, search the web, gather key info,
+     and include the findings in the task description passed to the specialist.
+   - If the user says no, proceed with local skills only.
+   - **Do NOT fetch the web silently.** Always ask first.
+   - **Do NOT ask for trivial topics** already covered by skills (SwiftUI basics,
+     MVVM, networking patterns, ARC, testing). Only ask when skills are insufficient.
+3. Use the matched agent as a subagent. Pass a clear task description including
    all technical details from the user's prompt (file names, errors, code, etc.).
-3. If the user attached a screenshot/image, write a detailed visual description
+   If web research was done, include the key findings in the task description.
+4. If the user attached a screenshot/image, write a detailed visual description
    (layout, components, colors, spacing, text) in the task — subagents cannot
    see images.
-4. When the subagent returns, briefly summarize what was done.
+5. When the subagent returns, briefly summarize what was done.
 
 | Intent signals | Use this agent |
 |---|---|
@@ -80,11 +97,19 @@ For each user request:
 | review, code review, check this, is this correct, best practice | **swift-reviewer** |
 | test, unit test, UI test, mock, coverage, XCTest, @Test | **test-engineer** |
 | crash, EXC_, SIGABRT, SIGSEGV, crash log, .ips, backtrace | **crash-analyst** |
-| memory, leak, retain cycle, OOM, jetsam, deinit not called | **memory-profiler** |
+| memory, leak, retain cycle, OOM, jetsam, deinit not called, memory audit, check for leaks, scan for retain cycles, memory issues | **memory-profiler** |
 | security, keychain, SSL, OWASP, biometric, vulnerability | **security-auditor** |
 | document, feature docs, documentation, describe features, write docs | **app-builder** (loads feature-docs skill) |
 | QA, find bugs, test this screen, any bugs, quality check, test report | **QA workflow** (see below) |
 | git, commit, what changed, diff, push, commit message, changes, status | **Handle directly** (load git-assistant skill, run script, analyze) |
+
+**Memory audit shortcut**: When the user asks to "check for memory leaks",
+"audit memory", or "scan for retain cycles" on an existing project/workspace,
+route to **memory-profiler** with this task:
+> "Perform a Workspace-Wide Leak Audit (Phase 1–4) on the project. Scan all
+> Swift source files for retain cycles, strong delegates, unbounded caches,
+> missing deinit, Combine/Timer/NotificationCenter leaks. Produce a full
+> Memory Audit Report with severity, file locations, and fix recommendations."
 
 **Multi-intent**: pick the primary (crash > memory > security > architecture >
 build > review > test), mention the secondary in the task description.

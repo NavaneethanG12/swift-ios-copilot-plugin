@@ -47,6 +47,12 @@ Perform a structured code review across 9 dimensions. Produce actionable, line-l
   closure (`withUnsafePointer`, `withUnsafeBytes`, etc.).
 - Verify `Unmanaged.passRetained` is balanced with `takeRetainedValue`.
 - Look for tight loops creating Objective-C objects without `autoreleasepool`.
+- Flag Combine `.sink` closures that capture `self` without `[weak self]`.
+- Flag `NotificationCenter.addObserver(forName:)` blocks without `[weak self]`.
+- Flag `URLSession` completion handlers that capture `self` without `[weak self]`.
+- Flag `@Observable` classes that store closure properties referencing `self`.
+- Flag unbounded `Dictionary` used as caches — should be `NSCache` with limits.
+- Flag classes that own timers/subscriptions but lack `deinit` cleanup.
 
 ### 5. Performance
 - Spot unnecessary `Array` copies where `Sequence` or `Collection` slices suffice.

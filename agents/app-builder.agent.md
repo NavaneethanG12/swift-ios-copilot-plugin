@@ -115,9 +115,157 @@ Before declaring a milestone complete, mentally trace through this checklist:
 - [ ] No force-unwraps (`!`) on values that could be nil
 - [ ] Error cases are handled (do/catch or try? with fallback)
 
+### R8 — Memory Leak Prevention (MANDATORY for every class)
+Every `class` you write MUST be checked for reference cycles. Apply these rules:
+
+**Closures stored on self**: Any closure assigned to a property of `self` MUST
+use `[weak self]` + `guard let self` + explicit `self.` on every property access:
+```swift
+// ❌ LEAK + COMPILER ERROR: missing [weak self] and explicit self.
+onUpdate = { refresh() }          // compiler error: implicit self
+onUpdate = { self.refresh() }      // compiles but leaks: strong cycle
+// ✅ CORRECT: weak capture + guard + explicit self.
+onUpdate = { [weak self] in
+    guard let self else { return }
+    self.refresh()
+}
+```
+
+**Delegates**: ALL delegate properties MUST be `weak var`:
+```swift
+weak var delegate: SomeDelegate?
+```
+
+**Timers**: Use block-based API with `[weak self]`, invalidate in `deinit`:
+```swift
+timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+    self?.tick()
+}
+deinit { timer?.invalidate() }
+```
+
+**Combine sinks**: Always `[weak self]` + `guard let self` + `self.`:
+```swift
+cancellable = publisher.sink { [weak self] value in
+    guard let self else { return }
+    self.handle(value)
+}
+```
+
+**NotificationCenter**: Always `[weak self]` + `guard let self` + `self.`:
+```swift
+NotificationCenter.default.addObserver(forName: .someNotification, object: nil,
+    queue: .main) { [weak self] _ in
+    guard let self else { return }
+    self.handleNotification()
+}
+```
+
+**Caches**: Use `NSCache` with `countLimit`/`totalCostLimit`, never unbounded `Dictionary`:
+```swift
+let cache = NSCache<NSString, UIImage>()
+cache.countLimit = 100
+cache.totalCostLimit = 50 * 1024 * 1024
+```
+
+**@Observable ViewModels**: Prefer direct `.task { await vm.load() }` calls from
+views. Avoid storing closures as properties on `@Observable` classes. If you must
+store a closure, use `[weak self]`.
+
+**deinit**: Every class that owns timers, subscriptions, observers, or large
+resources MUST implement `deinit` with cleanup logic.
+
+### R9 — Explicit `self` in Closures (MANDATORY)
+Swift requires explicit `self.` when referencing instance properties/methods
+inside escaping closures. This applies to `.task {}`, completion handlers,
+Combine sinks, Timer blocks, NotificationCenter observers — ANY closure that
+captures `self`.
+
+**Pattern 1 — `[weak self]` + `guard let self` (preferred for stored/escaping closures):**
+```swift
+// ❌ COMPILER ERROR: "Reference to property 'expenses' in closure requires
+//    explicit use of 'self' to make capture semantics explicit"
+cancellable = publisher.sink { value in
+    expenses.append(value)     // ERROR: missing self
+    updateTotal()              // ERROR: missing self
+}
+
+// ✅ CORRECT: [weak self] + guard let self + explicit self.
+cancellable = publisher.sink { [weak self] value in
+    guard let self else { return }
+    self.expenses.append(value)
+    self.updateTotal()
+}
+```
+
+**Pattern 2 — `.task {}` and non-escaping SwiftUI closures:**
+```swift
+// In SwiftUI .task, .onAppear, Button actions on a View (not a class),
+// self is the struct — no [weak self] needed, but self. is still required
+// inside nested closures:
+.task {
+    await vm.load()  // vm is a property — OK because .task captures self implicitly
+}
+
+// But inside a class method called from a closure:
+func fetchData() {
+    Task { [weak self] in
+        guard let self else { return }
+        self.isLoading = true
+        self.items = try await self.repo.fetchAll()
+        self.isLoading = false
+    }
+}
+```
+
+**Pattern 3 — `[self]` explicit capture (when you WANT strong capture):**
+```swift
+// Use ONLY in short-lived closures where you intentionally want strong capture
+// (e.g., UIView.animate, withAnimation):
+UIView.animate(withDuration: 0.3) { [self] in
+    view.alpha = targetAlpha  // OK: explicit [self] capture
+}
+```
+
+**Rules summary:**
+- Escaping/stored closures in classes → `[weak self]` + `guard let self` + `self.property`
+- `Task {}` inside class methods → `[weak self]` + `guard let self` + `self.property`
+- SwiftUI View `.task {}` → No `[weak self]` needed (View is a struct)
+- Short-lived non-escaping closures → `[self]` capture if needed
+- NEVER omit `self.` when accessing properties/methods inside closures on classes
+
 ---
 
 ## Workflow
+
+### Pre-Work — Knowledge Assessment (BEFORE any Phase)
+Before starting implementation, assess whether you have sufficient knowledge:
+
+1. **Identify the tech stack** required by the task: frameworks, APIs, libraries,
+   patterns, services.
+2. **Check local skills**: Do the loaded skills cover this topic?
+   - SwiftUI, MVVM, networking, persistence, testing, concurrency, security,
+     accessibility, etc. → skills already cover these. Proceed directly.
+3. **Flag gaps**: If the task involves ANY of these, you likely need web knowledge:
+   - Third-party libraries (Firebase, Alamofire, Realm, Supabase, etc.)
+   - Specific Apple frameworks not in skills (MapKit, ARKit, CoreML, HealthKit,
+     WeatherKit, ActivityKit, etc.)
+   - New iOS 18+ or visionOS APIs
+   - External API integrations (specific REST/GraphQL endpoints, OAuth providers)
+   - Platform-specific patterns not in architecture-patterns skill
+4. **Ask the user for permission** before fetching:
+   > "Before I start, I'd like to look up [specific topic/API/library docs] from
+   > the web to make sure I use the correct API. Shall I go ahead?"
+5. **Wait for approval.** If approved, search the web for:
+   - Official documentation / API reference
+   - Correct method signatures and parameter types
+   - Setup/configuration steps
+   - Known limitations or gotchas
+6. **Include findings** in your working context before writing code.
+7. **If the user says no**, proceed with local knowledge and note any assumptions.
+
+**Do NOT silently fetch the web.** Always ask first.
+**Do NOT ask for topics already in skills.** Only when skills are insufficient.
 
 ### Phase 0 — Screenshot / Visual Spec (if provided)
 When the prompt includes a **Visual Description** (from a screenshot or design):

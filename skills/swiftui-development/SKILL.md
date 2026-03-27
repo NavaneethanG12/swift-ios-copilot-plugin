@@ -183,6 +183,8 @@ When creating a new view that should be navigable:
 | `Immutable value may only appear on left side of assignment` | Mutating `let` or struct property | Use `@State`, `@Binding`, or make property `var` |
 | `Generic parameter 'Content' could not be inferred` | Missing return type in ViewBuilder | Add explicit `some View` return or check braces |
 | `Cannot find type 'X' in scope` | File not in target or missing import | Check target membership and imports |
+| `Reference to property 'X' in closure requires explicit use of 'self'` | Closure captures instance property without `self.` | Use `[weak self]` + `guard let self` + `self.property` (classes) or `[self]` capture |
+| `Escaping closure captures mutating 'self' parameter` | Struct method assigns closure that captures self | Use class-based ViewModel instead, or restructure to avoid escaping closure |
 
 ---
 

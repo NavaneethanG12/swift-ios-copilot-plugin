@@ -64,6 +64,26 @@ This shows how ALL pieces connect. Every new feature should follow this pattern:
 5. **Error display**: VM has `var error: Error?`, View has `.alert(isPresented:)`
 6. **Loading state**: VM has `var isLoading = false`, View shows `ProgressView()`
 
+**Closure rules inside ViewModels (classes):**
+- Any `Task {}` inside a VM method → `[weak self]` + `guard let self` + `self.property`
+- Any Combine `.sink` → `[weak self]` + `guard let self` + `self.property`
+- Any stored closure → `[weak self]` + `guard let self` + `self.property`
+- SwiftUI View `.task {}` calling `await vm.load()` → NO `[weak self]` (View is struct)
+
+```swift
+// ✅ Correct Task usage inside a class method
+@Observable class TaskListVM {
+    func loadInBackground() {
+        Task { [weak self] in
+            guard let self else { return }
+            self.isLoading = true
+            self.tasks = (try? await self.repo.fetchAll()) ?? []
+            self.isLoading = false
+        }
+    }
+}
+```
+
 **Every feature MUST have**: Model + Protocol + Repo + ViewModel + View + Navigation entry.
 
 ---
