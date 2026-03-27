@@ -23,6 +23,9 @@ Both coexist in the same target. Don't mix APIs in a single test.
 ## Swift Testing Patterns
 
 ```swift
+import Testing
+@testable import MyApp  // MUST match the module name exactly
+
 @Suite("ViewModelTests")
 struct VMTests {
     @Test("loads items") func load() async {
@@ -43,6 +46,15 @@ func email(addr: String, valid: Bool) { #expect(Validator.isValid(addr) == valid
 // Tags: extension Tag { @Tag static var networking: Self }
 // @Test(.tags(.networking)) func ...
 ```
+
+### Test File Compile Checklist
+Before finishing any test file, verify:
+1. **Import line**: `import Testing` for Swift Testing, `import XCTest` for XCTest
+2. **Module import**: `@testable import <ExactModuleName>` — check the actual target name
+3. **Type names**: Copy-paste from source — never retype (typos cause `Cannot find type`)
+4. **Method signatures**: Match parameter labels, types, and `async throws` exactly
+5. **Mock completeness**: Mock must implement ALL protocol requirements, not just the ones tested
+6. **Return types**: Mock return types must match protocol declaration exactly
 
 ---
 

@@ -74,8 +74,16 @@ milestones.
    Memory: <ownership graph, cache strategy, peak footprint>
    Concurrency: <actor boundaries, Sendable types, MainActor points>
 
+   Wiring Map:
+   - App Entry → [TabView/NavigationStack] → [Screen1, Screen2, ...]
+   - Screen1: View → ViewModel → Repository → DataSource
+   - Screen2: View → ViewModel → Repository → DataSource
+   (Every view must have a clear path from app entry. Every ViewModel must connect to a View.)
+
    Milestones:
    1. <small implementation step>
+      Files: <list of files to create/modify>
+      Wiring: <how this milestone connects to existing code>
    2. ...
 
    Open Questions: <decisions needed before implementation>

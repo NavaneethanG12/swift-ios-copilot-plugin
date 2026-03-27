@@ -27,16 +27,34 @@ user-invocable: true
 ## SwiftData (iOS 17+)
 
 ```swift
-@Model class Task {
-    var title: String; var isCompleted: Bool; var createdAt: Date
-    @Relationship(deleteRule: .cascade, inverse: \SubTask.parent) var subtasks: [SubTask]
-    init(title: String) { self.title = title; isCompleted = false; createdAt = .now; subtasks = [] }
+import Foundation
+import SwiftData
+
+@Model
+class Task {
+    var title: String
+    var isCompleted: Bool
+    var createdAt: Date
+    @Relationship(deleteRule: .cascade, inverse: \SubTask.parent)
+    var subtasks: [SubTask]
+
+    init(title: String) {
+        self.title = title; isCompleted = false; createdAt = .now; subtasks = []
+    }
 }
-// Container: .modelContainer(for: [Task.self])
-// Query: @Query(sort: \Task.createdAt, order: .reverse) var tasks: [Task]
-// CRUD: context.insert(item) / context.delete(item)
-// Filter: @Query(filter: #Predicate<Task> { !$0.isCompleted }, sort: [...])
+
+// App entry: .modelContainer(for: [Task.self])
+// View query: @Query(sort: \Task.createdAt, order: .reverse) var tasks: [Task]
+// Insert: modelContext.insert(Task(title: "New"))
+// Delete: modelContext.delete(task)
+// Filter: @Query(filter: #Predicate<Task> { !$0.isCompleted }, sort: [SortDescriptor(\.createdAt, order: .reverse)])
 ```
+
+**Wiring checklist for SwiftData:**
+1. Add `.modelContainer(for: [Model.self])` to the App or root view
+2. Use `@Query` in the view to fetch data (not manual context queries)
+3. Use `@Environment(\.modelContext)` for insert/delete operations
+4. Every `@Relationship` must have `deleteRule` and `inverse`
 
 ---
 

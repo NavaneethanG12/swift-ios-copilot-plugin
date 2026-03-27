@@ -23,19 +23,48 @@ user-invocable: true
 ## MVVM (Default for SwiftUI)
 
 ```swift
-// Model: struct, Codable, Identifiable
-// ViewModel: @Observable, inject deps, expose state + async methods
+// Model: struct, Codable, Identifiable, Hashable
+// ViewModel: @Observable, inject deps, expose state + async methods, @MainActor mutations
 // View: @State var vm, .task { await vm.load() }
 
 @Observable class TaskListVM {
     private let repo: TaskRepository
     var tasks: [Task] = []; var isLoading = false
     init(repo: TaskRepository) { self.repo = repo }
-    func load() async { isLoading = true; defer { isLoading = false }; tasks = (try? await repo.fetchAll()) ?? [] }
+    @MainActor func load() async { isLoading = true; defer { isLoading = false }; tasks = (try? await repo.fetchAll()) ?? [] }
 }
 // View: @State private var vm = TaskListVM(repo: repo)
 // body → List(vm.tasks) { ... }.task { await vm.load() }
 ```
+
+### Complete MVVM Wiring (end-to-end)
+
+This shows how ALL pieces connect. Every new feature should follow this pattern:
+
+```
+┌──────────────┐    ┌──────────────┐    ┌──────────────────┐    ┌───────────┐
+│ View          │───▶│ ViewModel    │───▶│ Repository       │───▶│ Data      │
+│ (@State var vm)    │ (@Observable) │    │ (protocol + impl)│    │ (API/DB)  │
+│               │    │              │    │                  │    │           │
+│ .task {       │    │ @MainActor   │    │ async throws     │    │           │
+│   await vm    │    │ func load()  │    │ func fetchAll()  │    │           │
+│   .load()     │    │   async {    │    │   -> [Model]     │    │           │
+│ }             │    │   tasks =    │    │                  │    │           │
+│               │    │   try await  │    │                  │    │           │
+│ List(vm.tasks)│    │   repo       │    │                  │    │           │
+│               │    │   .fetchAll()│    │                  │    │           │
+└──────────────┘    └──────────────┘    └──────────────────┘    └───────────┘
+```
+
+**Wiring rules:**
+1. **View → VM**: `@State private var vm = VM(repo: RealRepo())` or injected
+2. **VM → Repo**: `private let repo: RepoProtocol` injected via `init`
+3. **Repo → Data**: URLSession for API, ModelContext for SwiftData
+4. **Async trigger**: View uses `.task { await vm.load() }` — never `onAppear`
+5. **Error display**: VM has `var error: Error?`, View has `.alert(isPresented:)`
+6. **Loading state**: VM has `var isLoading = false`, View shows `ProgressView()`
+
+**Every feature MUST have**: Model + Protocol + Repo + ViewModel + View + Navigation entry.
 
 ---
 
@@ -95,6 +124,12 @@ Networking → Core  |  Persistence → Core  |  DesignSystem → Core
 | Direct navigation | Coordinator/Router |
 | Business logic in Views | Move to ViewModel/Service |
 | Feature coupling | Protocols in Core |
+| View created but not navigable | Add to Router/NavigationStack destination |
+| ViewModel created but unused | Wire to View with @State and .task |
+| Protocol with no implementation | Create concrete type + mock |
+| Model without Identifiable/Hashable | Add conformances for List/Navigation |
+| Missing imports | Always import SwiftUI/Foundation/Observation per file |
+| @Observable without @MainActor | Add @MainActor to methods that update published state |
 
 ---
 

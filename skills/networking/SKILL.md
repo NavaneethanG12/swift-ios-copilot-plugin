@@ -9,6 +9,96 @@ user-invocable: true
 
 # Networking — iOS / macOS
 
+## Complete File Templates
+
+Always include imports. Every networking file needs at minimum `import Foundation`.
+
+### Endpoint + APIClient (copy-ready)
+```swift
+import Foundation
+
+// MARK: - HTTP Method
+enum HTTPMethod: String { case GET, POST, PUT, PATCH, DELETE }
+
+// MARK: - Endpoint Protocol
+protocol Endpoint {
+    var baseURL: URL { get }
+    var path: String { get }
+    var method: HTTPMethod { get }
+    var headers: [String: String] { get }
+    var queryItems: [URLQueryItem]? { get }
+    var body: (any Encodable)? { get }
+}
+
+extension Endpoint {
+    var urlRequest: URLRequest {
+        var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: true)!
+        components.queryItems = queryItems
+        var request = URLRequest(url: components.url!)
+        request.httpMethod = method.rawValue
+        request.allHTTPHeaderFields = headers
+        if let body { request.httpBody = try? JSONEncoder().encode(body) }
+        return request
+    }
+}
+
+// MARK: - Network Error
+enum NetworkError: LocalizedError {
+    case invalidResponse
+    case httpError(statusCode: Int, data: Data)
+    case decodingFailed(Error)
+    case noConnection
+    case timeout
+
+    var isRetryable: Bool {
+        switch self {
+        case .httpError(let code, _): return code >= 500 || code == 429
+        case .noConnection, .timeout: return true
+        default: return false
+        }
+    }
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse: return "Invalid server response"
+        case .httpError(let code, _): return "Server error (\(code))"
+        case .decodingFailed(let error): return "Data format error: \(error.localizedDescription)"
+        case .noConnection: return "No internet connection"
+        case .timeout: return "Request timed out"
+        }
+    }
+}
+
+// MARK: - HTTP Client Protocol (for mocking)
+protocol HTTPClient: Sendable {
+    func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T
+}
+
+// MARK: - API Client
+actor APIClient: HTTPClient {
+    private let session: URLSession
+    private let decoder: JSONDecoder
+
+    init(session: URLSession = .shared, decoder: JSONDecoder = {
+        let d = JSONDecoder(); d.keyDecodingStrategy = .convertFromSnakeCase; d.dateDecodingStrategy = .iso8601; return d
+    }()) {
+        self.session = session; self.decoder = decoder
+    }
+
+    func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
+        let (data, response) = try await session.data(for: endpoint.urlRequest)
+        guard let http = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+        guard (200...299).contains(http.statusCode) else {
+            throw NetworkError.httpError(statusCode: http.statusCode, data: data)
+        }
+        do { return try decoder.decode(T.self, from: data) }
+        catch { throw NetworkError.decodingFailed(error) }
+    }
+}
+```
+
+---
+
 ## API Client Architecture
 
 ```swift

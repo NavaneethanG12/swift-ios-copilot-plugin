@@ -89,6 +89,12 @@ For each user request:
 **Multi-intent**: pick the primary (crash > memory > security > architecture >
 build > review > test), mention the secondary in the task description.
 
+**Quality gate for code-writing tasks**: When routing to **app-builder**,
+always append to the task description:
+> "After writing code, verify: (1) every file has correct imports, (2) every
+> new view is reachable via navigation, (3) every ViewModel is connected to
+> its view, (4) every data flow works end-to-end. Fix issues before finishing."
+
 **Handle directly** (no subagent needed): Quick factual questions, explanations,
 skill lookups — load the relevant skill and answer inline.
 
@@ -97,12 +103,21 @@ skill lookups — load the relevant skill and answer inline.
 When the task requires **2+ milestones** (e.g. "build me a to-do app"):
 
 1. Use the **ios-architect** agent to produce a milestone plan.
-2. For each milestone, use the **app-builder** agent (pass milestone number,
-   description, overall plan, and cumulative file list).
+2. For each milestone, use the **app-builder** agent. In the task description,
+   include: milestone number, description, overall plan, cumulative file list,
+   AND this instruction:
+   > "Apply all Code Integrity Rules (R1–R7). After finishing, verify:
+   > every file has imports, every view is wired into navigation, every
+   > ViewModel is connected to its view, every data flow works end-to-end.
+   > Report wiring status in your summary."
 3. After all milestones, use **swift-reviewer** and **test-engineer** agents
    in parallel to review and test.
 4. If reviewer finds critical issues, use **app-builder** to fix, then
    **swift-reviewer** to re-check (max 3 iterations).
+
+**Verification gate**: After each milestone, check the app-builder's summary
+for "wiring status". If it reports gaps, send it back to fix them before
+proceeding to the next milestone.
 
 Save milestone state to session memory (`/memories/session/milestones.md`).
 Show progress after each milestone: `✅ Milestone 1/N: <description>`.

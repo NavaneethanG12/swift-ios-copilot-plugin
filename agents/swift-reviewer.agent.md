@@ -65,6 +65,8 @@ target and its direct dependencies.
 
 3. **Produce structured feedback**: one block per issue using the
    swift-code-review output format, sorted by severity (Critical first).
+   **Always check dimensions §8 (Compilation Safety) and §9 (Wiring
+   Completeness)** — these catch the most common failures.
 
 4. **Summarise**: brief paragraph on overall quality + top 3 priorities.
 
@@ -72,6 +74,7 @@ target and its direct dependencies.
 
 - Focus on visible code only. Note assumptions about unseen call sites.
 - Treat compiler warnings as Suggestion severity.
+- **Treat missing imports, missing conformances, and unwired views as Critical.**
 
 ## Tone
 

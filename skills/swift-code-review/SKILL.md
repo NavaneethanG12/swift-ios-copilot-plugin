@@ -11,7 +11,7 @@ user-invocable: true
 
 # Swift Code Review
 
-Perform a structured code review across 7 dimensions. Produce actionable, line-level feedback.
+Perform a structured code review across 9 dimensions. Produce actionable, line-level feedback.
 
 ## Review checklist
 
@@ -68,6 +68,35 @@ Perform a structured code review across 7 dimensions. Produce actionable, line-l
 - Boolean properties should read as assertions (`isLoading`, `hasError`).
 - Method labels should make call sites read as English prose.
 
+### 8. Compilation Safety
+- **Missing imports**: Every file must have correct `import` statements.
+  Flag any file missing `import SwiftUI`, `import Foundation`, etc.
+- **Missing conformances**: Types used in `ForEach` need `Identifiable`.
+  Types used in `NavigationLink(value:)` need `Hashable`. Codable models
+  need `Codable`. Flag missing conformances.
+- **Type mismatches**: Check that function parameters match calling types.
+  Check that `@Binding` parameters receive `$property` at call sites.
+- **Missing implementations**: If a protocol is declared, check that at
+  least one concrete type implements it. Flag protocols with zero conformers.
+- **Unresolved references**: Flag any type or function used but not
+  defined in the visible codebase (may indicate missing file or import).
+
+### 9. Wiring Completeness
+- **Navigation**: Every view should be reachable from the navigation
+  hierarchy. Flag views that are defined but never used in a
+  `NavigationLink`, `navigationDestination`, `TabView`, `sheet`, or
+  `fullScreenCover`.
+- **Data binding**: Every `@Observable` ViewModel should be instantiated
+  in at least one view via `@State` or `@Environment`. Flag ViewModels
+  with no usage site.
+- **Async loading**: Every ViewModel with `load()` or `fetch()` methods
+  should be called from `.task {}` in a view. Flag async methods that
+  are never called.
+- **Error handling**: If a ViewModel has an `error` property, the view
+  should display it (`.alert`, `Text`, etc.). Flag undisplayed errors.
+- **User actions**: Every button/tap gesture should call a ViewModel
+  method. Flag buttons with empty or placeholder actions.
+
 ## Output format
 
 For each issue found, report:
@@ -81,6 +110,9 @@ Fix:
 
 End with a one-paragraph summary of overall code quality and the top three
 improvements the author should prioritise.
+
+Compilation Safety (§8) and Wiring Completeness (§9) issues that would prevent
+the app from building or functioning should always be reported as **Critical**.
 
 ---
 
