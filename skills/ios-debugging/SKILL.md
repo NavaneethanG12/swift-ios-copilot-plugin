@@ -80,6 +80,10 @@ then jump to the relevant section below.
 | `Undefined symbol` | Linking failure | Check target membership of the file |
 | `Sandbox: rsync … denied` | Build phase script sandbox | Add to "Input Files" or disable sandbox |
 
+For comprehensive compiler error diagnosis and resolution, see the
+**compiler-errors** skill — it has 50+ known error patterns with fixes and a
+full resolution flow including web search escalation.
+
 ## Step 3 — Apply the fix and verify
 
 1. Make the minimal change to fix the root cause (not the symptom).

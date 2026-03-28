@@ -16,8 +16,7 @@
 # ENVIRONMENT
 #   CLAUDE_PLUGIN_ROOT — absolute path to this plugin's directory,
 #     injected by VS Code when the hook command is expanded.
-#     Not used directly here, but available if the banner ever needs to
-#     display the install path or read a version from plugin.json.
+#   Version is read dynamically from plugin.json via python3.
 #
 # EXIT CODES
 #   0 — always (cat cannot meaningfully fail on a heredoc)
@@ -27,13 +26,18 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Print the welcome banner using a quoted heredoc so that no variable
-# expansion or command substitution occurs inside the box art — the box
-# characters and special symbols are printed literally.
+# Read version from plugin.json so the banner stays in sync automatically.
 # ---------------------------------------------------------------------------
-cat <<'EOF'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="$(dirname "$SCRIPT_DIR")"
+VERSION=$(python3 -c "import json; print(json.load(open('${PLUGIN_ROOT}/plugin.json'))['version'])" 2>/dev/null || echo "unknown")
+
+# ---------------------------------------------------------------------------
+# Print the welcome banner.
+# ---------------------------------------------------------------------------
+cat <<EOF
 ╔══════════════════════════════════════════════════════════════╗
-║           Swift & iOS Developer Plugin  v4.4.0              ║
+║           Swift & iOS Developer Plugin  v${VERSION}              ║
 ╠══════════════════════════════════════════════════════════════╣
 ║                                                              ║
 ║  ★ Select "ios-copilot" from the agent picker ★             ║
@@ -61,4 +65,28 @@ if [ ! -f "$MAP_FILE" ]; then
    This creates .github/instructions/codebase-map.instructions.md
    so agents only read files relevant to each task.
 MAPEOF
+fi
+
+# ---------------------------------------------------------------------------
+# Check for AGENTS.md — the always-on project context file.
+# VS Code auto-reads AGENTS.md from the workspace root for every prompt.
+# ---------------------------------------------------------------------------
+AGENTS_FILE="${WORKSPACE_ROOT}/AGENTS.md"
+
+if [ ! -f "$AGENTS_FILE" ]; then
+  cat <<'AGENTSEOF'
+
+⚠️  No AGENTS.md found in the project root.
+   Without it, agents have no project-level context (architecture,
+   conventions, module structure, key decisions).
+
+   Tell ios-copilot:
+     "create the AGENTS.md for this project"
+
+   This creates AGENTS.md with project context (architecture,
+   conventions, modules, dependencies) — readable by any agent.
+AGENTSEOF
+else
+  echo ""
+  echo "✅ AGENTS.md found — project context will be loaded automatically."
 fi

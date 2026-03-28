@@ -16,6 +16,13 @@
         "type": "command",
         "command": "${CLAUDE_PLUGIN_ROOT}/scripts/session-start.sh"
       }
+    ],
+    "PreCompact": [
+      {
+        "type": "command",
+        "command": "${CLAUDE_PLUGIN_ROOT}/scripts/pre-compact.sh",
+        "timeout": 15
+      }
     ]
   }
 }

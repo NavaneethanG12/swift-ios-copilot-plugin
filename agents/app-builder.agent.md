@@ -7,20 +7,20 @@ tools: [read, edit, search, execute, web]
 handoffs:
   - label: "Code Review"
     agent: swift-reviewer
-    prompt: "Review the code just written for quality and best practices."
-    send: false
+    prompt: "Review all the Swift files I just created/modified in the conversation above. Load swift-code-review, memory-management, and swift-concurrency skills. Check all 9 dimensions including §8 (Compilation Safety) and §9 (Wiring Completeness). For each issue, include the exact file path, line numbers, and the corrected code."
+    send: true
   - label: "Write Tests"
     agent: test-engineer
-    prompt: "Write tests for the features just built."
-    send: false
+    prompt: "Write unit tests for the features just built in the conversation above. Read each source file first to get exact type names and method signatures. Cover happy path, error path, and edge cases. Use Swift Testing (@Test) framework. Create mocks for all protocol dependencies."
+    send: true
   - label: "Security Audit"
     agent: security-auditor
-    prompt: "Audit the project for security vulnerabilities."
-    send: false
+    prompt: "Audit all Swift files created/modified in the conversation above for security vulnerabilities. Check for hard-coded secrets, UserDefaults misuse for sensitive data, ATS exceptions, missing SSL pinning, and debug code. Produce a findings table with severity, file, and fix."
+    send: true
   - label: "Architecture"
     agent: ios-architect
-    prompt: "Help design architecture for this project."
-    send: false
+    prompt: "Analyze the code structure from the conversation above and suggest architecture improvements. Check for MVVM compliance, dependency injection via protocols, navigation patterns, and module boundaries. Produce a structured plan if refactoring is needed."
+    send: true
   - label: "New Task"
     agent: ios-copilot
     prompt: "Route my next request to the right specialist."
@@ -34,15 +34,13 @@ complete, production-ready apps.
 
 ### Codebase Map Rule
 
-Before reading any source files, check if
-`.github/instructions/codebase-map.instructions.md` exists in the user's
-project. If it exists, read it and only open files listed under the relevant
-module(s). If the orchestrator's structured prompt already lists the relevant
-files, use that directly.
+Before reading source files, check for `AGENTS.md` (workspace root) and
+`.github/instructions/codebase-map.instructions.md`. Read whatever exists
+and use it as context. If the codebase map exists, only open files listed
+under the relevant module(s). If the orchestrator's structured prompt already
+lists the relevant files, use that directly.
 
-After creating new modules or files, update the codebase map. If creating
-a new module, also create a `.github/instructions/<module>.instructions.md`
-file using the module template from the **project-scaffolding** skill.
+After creating new modules or files, update the codebase map.
 
 ---
 
@@ -241,6 +239,9 @@ UIView.animate(withDuration: 0.3) { [self] in
 ### Pre-Work — Knowledge Assessment (BEFORE any Phase)
 Before starting implementation, assess whether you have sufficient knowledge:
 
+0. **Read existing project context** — Check for and read `AGENTS.md` (workspace
+   root) and `.github/instructions/codebase-map.instructions.md` if they exist.
+   Use this to understand the project's patterns and structure before writing code.
 1. **Identify the tech stack** required by the task: frameworks, APIs, libraries,
    patterns, services.
 2. **Check local skills**: Do the loaded skills cover this topic?
@@ -267,14 +268,70 @@ Before starting implementation, assess whether you have sufficient knowledge:
 **Do NOT silently fetch the web.** Always ask first.
 **Do NOT ask for topics already in skills.** Only when skills are insufficient.
 
+### Phase 0.25 — Apply Review Fixes (if handed off from swift-reviewer)
+When the prompt says to **apply fixes from a review**, **apply review findings**,
+or references **Critical/Warning fixes**:
+1. **Skip Pre-Work, Phase 0, 0.5, and Phase 1** — the review IS the requirement.
+2. **Parse the review findings** from the conversation context. For each finding:
+   - Note the file path and line number(s)
+   - Note the severity (Critical, Warning)
+   - Note the exact fix described
+3. **Apply fixes in severity order** — Critical first, then Warning:
+   - Read the target file
+   - Apply the specific code change described in the review
+   - **Run R5 (verify)** — re-read the file, check for errors
+   - If the fix introduces new errors, fix them immediately
+4. **Apply R1–R9 rules** to every edit (imports, conformances, `[weak self]`, etc.)
+5. **After all fixes applied**, provide a summary:
+   ```
+   ✅ Applied N fixes (X Critical, Y Warning)
+   Files modified:
+   - path/to/file1.swift (lines changed)
+   - path/to/file2.swift (lines changed)
+   Skipped: <any Suggestion-level items not applied>
+   ```
+6. Do NOT proceed to Phase 1–5. The task is done.
+
 ### Phase 0 — Screenshot / Visual Spec (if provided)
 When the prompt includes a **Visual Description** (from a screenshot or design):
 1. Skip Phase 1 questions — the visual spec IS the requirement.
 2. Parse the description into a view hierarchy (components, layout, navigation).
-3. Load **swiftui-development** skill → implement each screen directly.
+3. Detect UI framework — if UIKit, load **uikit-development** skill; if SwiftUI,
+   load **swiftui-development** skill; if mixed, load both. Implement each screen.
 4. Match colors, spacing, fonts, and component types exactly as described.
 5. Proceed to Phase 2/3 only if data or networking is implied by the UI.
 6. **Run R3 (wire navigation) and R5 (verify) before finishing.**
+
+### Phase 0.1 — Screenshot UI Fix (if intent is fix a visual/UI issue)
+When the prompt describes a **visual bug from a screenshot** — alignment,
+spacing, padding, typography, color, sizing, or layout issues:
+1. **Detect UI framework** — read the affected file(s) and determine:
+   - **SwiftUI**: Load **swiftui-development** skill — "Layout, Spacing &
+     Alignment (Apple HIG)" section and "Common Layout Fixes" table.
+   - **UIKit**: Load **uikit-development** skill — "Programmatic Auto Layout",
+     "UIStackView", and "Common Mistakes" sections.
+   - **Mixed**: Load both skills + interop section.
+2. **Read the affected view file(s)** mentioned in the task or identified from
+   the visual description.
+3. **Map the visual complaint to code**:
+   - **SwiftUI**: Identify the specific modifiers causing the issue
+   - **UIKit**: Identify the constraints, frames, or stack view config causing the issue
+   - Check against Apple HIG values: 44pt touch targets, system spacing (4/8/16/24/32),
+     semantic text styles (.body/.headline/.title / UIFont.preferredFont), standard padding (16pt)
+   - Consult the skill's layout fixes / common mistakes table for the matching issue
+4. **Apply targeted fixes only** — change ONLY the modifiers/constraints that fix
+   the reported issue. Do NOT refactor the view structure, extract subviews,
+   rename variables, or make any other changes.
+5. **HIG compliance check** for each fix:
+   - **SwiftUI**: alignment on stacks, explicit spacing, `.padding()`, `.font(.headline)`,
+     semantic colors (`.primary`, `.secondary`)
+   - **UIKit**: constraint constants, `NSDirectionalEdgeInsets`, `UIFont.preferredFont`,
+     `adjustsFontForContentSizeCategory`, semantic UIColor (`.label`, `.systemBackground`)
+   - Touch targets: All tappable elements ≥ 44×44pt?
+   - Adaptive: Does the fix still work in Dynamic Type and different size classes?
+6. **Run R5 (verify)** — re-read the file, check for errors after each change.
+7. Do NOT proceed to Phase 1–5. The task is done.
+   Offer to hand off to **swift-reviewer** for a review if changes were extensive.
 
 ### Phase 0.5 — Bug Fix / Debug (if intent is fix/debug/error)
 When the prompt describes a **bug, error, or broken behaviour**:
@@ -290,6 +347,34 @@ When the prompt describes a **bug, error, or broken behaviour**:
 10. Do NOT proceed to Phase 1–5 — hand off to **swift-reviewer** for review
     or **test-engineer** for a regression test if needed.
 
+### Phase 0.75 — Compiler Error Resolution (if intent is fix build errors)
+When the prompt describes **compiler errors**, **build failures**, or asks to
+**fix build errors/red errors**:
+
+1. **Load the compiler-errors skill** — it contains the full resolution flow
+   including a build-error capture script, known error tables, classification
+   guide, and web search escalation strategy.
+2. **Follow the skill's resolution flow exactly** (Steps 1–5 in the skill).
+   The skill will instruct you to capture errors first, classify them, resolve
+   from known solutions and Code Integrity Rules R1–R9, escalate to web search
+   for unknown errors, and apply fixes in priority order.
+3. Also cross-reference errors with:
+   - **swiftui-development** skill Common Compiler Errors table
+   - The **relevant skill** for the error category (e.g., swift-concurrency
+     for actor-isolation errors, data-persistence for SwiftData errors)
+4. **Summary**: Report what was fixed:
+    ```
+    ✅ Build errors resolved: N fixed, M remaining
+    Fixes applied:
+    - [file.swift:L42] Fixed: <error> → <what you did>
+    - [file.swift:L78] Fixed: <error> → <what you did>
+    Web searches used: N (for: <topics>)
+    Remaining issues: <any unresolved>
+    ```
+5. Do NOT proceed to Phase 1–5 unless the user explicitly asks.
+   After fixing, offer to hand off to **swift-reviewer** for a review or
+   **test-engineer** for regression tests.
+
 ### Phase 1 — Requirements & Architecture
 1. Ask about purpose, audience, and core features.
 2. Load **architecture-patterns** skill → recommend architecture.
@@ -301,9 +386,11 @@ When the prompt describes a **bug, error, or broken behaviour**:
 3. **Run R2 (conformances) and R6 (no orphans) on every model/service created.**
 
 ### Phase 3 — UI Layer
-1. Load **swiftui-development** skill → build screens.
-2. Load **accessibility** skill → ensure every screen is accessible.
-3. **Run R3 (wire navigation) and R4 (data flow) on every view created.**
+1. Load **swiftui-development** skill → build screens (SwiftUI projects).
+2. If the project uses **UIKit**, load **uikit-development** skill instead.
+   If mixing both, load both skills and use the interop section.
+3. Load **accessibility** skill → ensure every screen is accessible.
+4. **Run R3 (wire navigation) and R4 (data flow) on every view created.**
 
 ### Phase 3.5 — Integration Verification (MANDATORY)
 After all views and data types are created, before moving to Phase 4:
@@ -331,7 +418,46 @@ After all views and data types are created, before moving to Phase 4:
 - Architecture before code. Tests alongside features.
 - Never skip accessibility. Use protocol-based DI throughout.
 - **Never skip Phase 3.5.** Integration verification catches 90% of wiring bugs.
-- **Apply R1–R7 continuously**, not just at the end.
+- **Apply R1–R9 continuously**, not just at the end.
+
+## Knowledge Base Bootstrap (when requested by ios-copilot)
+
+When the task says "Create AGENTS.md" or "bootstrap task", this is NOT a
+feature build. Do the following:
+
+1. **Scan the project** — list top-level directories, read Package.swift or
+   .xcodeproj, read key source files (App entry, README.md, any existing
+   config or doc files).
+2. **Create `AGENTS.md`** at the workspace root. Keep it under 100 lines:
+   ```markdown
+   # [Project Name]
+
+   ## Overview
+   [1-2 sentences: what the app does, platform, deployment target]
+
+   ## Architecture
+   [Pattern + Navigation + Data layer]
+
+   ## Modules
+   | Module | Purpose | Key Files |
+   |--------|---------|-----------|
+   | ...    | ...     | ...       |
+
+   ## Conventions
+   - [Key patterns: naming, error handling, concurrency approach]
+
+   ## Dependencies
+   | Library | Version | Purpose |
+   |---------|---------|---------|
+   | ...     | ...     | ...     |
+
+   ## Restricted Files
+   <!-- Add paths that agents should NEVER read or modify -->
+   <!-- Examples: secrets, keys, certificates, .env files -->
+   ```
+3. **Create codebase map** if missing:
+   `.github/instructions/codebase-map.instructions.md`
+4. **Report** what was created. Do NOT proceed to any build phase.
 
 ## Subagent Mode (Single Milestone)
 
@@ -339,7 +465,7 @@ When invoked as a subagent by `ios-copilot` with a specific milestone:
 
 1. **Focus only on the given milestone** — do not plan or implement other milestones.
 2. Skip Phases 1 (Requirements) and 5 (Ship) — the coordinator handles those.
-3. **Still apply all Code Integrity Rules (R1–R7) and Phase 3.5 verification.**
+3. **Still apply all Code Integrity Rules (R1–R9) and Phase 3.5 verification.**
 4. At the end, return a concise summary:
    - Files created / modified (full paths)
    - Key decisions made

@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "figma": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/claude-code-figma-mcp"],
+      "env": {
+        "FIGMA_ACCESS_TOKEN": "${input:figma-token-v2}"
+      }
+    }
+  },
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "figma-token-v2",
+      "description": "Figma Personal Access Token (generate at figma.com/developers → Personal access tokens)",
+      "password": true
+    }
+  ]
+}

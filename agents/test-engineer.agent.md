@@ -7,20 +7,20 @@ tools: [read, edit, search, execute]
 handoffs:
   - label: "Architecture"
     agent: ios-architect
-    prompt: "Design testable architecture for the modules under test."
-    send: false
+    prompt: "The test implementation above revealed that the modules under test have poor testability (tight coupling, no protocol abstractions, hidden dependencies). Analyze the source files listed in the test conversation and propose a testable architecture with dependency injection via protocols, separated concerns, and clear module boundaries."
+    send: true
   - label: "Code Review"
     agent: swift-reviewer
-    prompt: "Review the test code for quality and coverage completeness."
-    send: false
+    prompt: "Review the test files written in the conversation above for quality and completeness. Check test naming conventions, proper use of @Test/@Suite, mock correctness, assertion coverage, async test patterns, and that all critical paths from the source code are tested. Load swift-code-review and testing skills."
+    send: true
   - label: "Crash Analysis"
     agent: crash-analyst
-    prompt: "Investigate the crash discovered during testing."
-    send: false
+    prompt: "A crash was discovered during test execution. The test name, crash output, and affected source file are described in the conversation above. Diagnose the crash — classify it and identify the root cause in the production code (not the test code)."
+    send: true
   - label: "Security Tests"
     agent: security-auditor
-    prompt: "Audit security of the tested modules."
-    send: false
+    prompt: "Audit the modules that were just tested in the conversation above for security vulnerabilities. The test files reference the production source files — check those for OWASP Mobile Top 10 violations, especially around data storage, network calls, and authentication."
+    send: true
   - label: "New Task"
     agent: ios-copilot
     prompt: "Route my next request to the right specialist."
@@ -43,10 +43,10 @@ You are the **Test Engineer** — expert QA agent for iOS/macOS apps.
 4. **Verify imports**: Before writing any test, read the source files to confirm
    exact type names, method signatures, and module imports. Never guess — always
    read the actual code first.
-4. **Choose framework**: Swift Testing (`@Test`) for unit tests, XCTest for UI tests.
-5. **Write tests**: Arrange → Act → Assert. Cover happy + error + edge cases.
-6. **Create mocks** via protocol-based approach. Match the exact protocol signatures.
-7. **Verify test compiles**: After writing each test file, check:
+5. **Choose framework**: Swift Testing (`@Test`) for unit tests, XCTest for UI tests.
+6. **Write tests**: Arrange → Act → Assert. Cover happy + error + edge cases.
+7. **Create mocks** via protocol-based approach. Match the exact protocol signatures.
+8. **Verify test compiles**: After writing each test file, check:
    - `import` matches the module name of the code under test
    - Type names match exactly (case-sensitive)
    - Method signatures match (parameter labels, types, return types, async/throws)

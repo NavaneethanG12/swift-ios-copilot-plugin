@@ -2,8 +2,9 @@
 name: git-assistant
 description: >
   Analyze git changes, generate impact reports, and create conventional commit
-  messages. Uses scripts/git-report.sh to gather repository state. Use when
-  asked about git status, what changed, commit message, or change impact.
+  messages. Includes a git-report script for gathering repository state. Use
+  when asked about git status, what changed, commit message, or change impact.
+argument-hint: "[repo path, commit range, or 'what changed']"
 user-invocable: true
 ---
 
@@ -17,10 +18,12 @@ every changed file to write a good commit.
 
 This skill relies on a helper script that gathers raw git data:
 
+The script is included in this skill: [git-report.sh](./git-report.sh)
+
 | Script | Purpose | Usage |
 |---|---|---|
-| `scripts/git-report.sh` | Full change report (staged, unstaged, untracked, recent commits, remote diff) | Run with no args for full report |
-| `scripts/git-report.sh --staged-only` | Only staged changes + detailed diff | Run when generating a commit message for staged files |
+| `git-report.sh` | Full change report (staged, unstaged, untracked, recent commits, remote diff) | Run with no args for full report |
+| `git-report.sh --staged-only` | Only staged changes + detailed diff | Run when generating a commit message for staged files |
 
 **Run the script first**, then analyze its output using the instructions below.
 
@@ -28,16 +31,12 @@ This skill relies on a helper script that gathers raw git data:
 
 ### 1. Gather — Run the git report script
 
-```bash
-# Full report (status overview + impact analysis)
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/git-report.sh"
+The script is included in this skill directory:
+[git-report.sh](./git-report.sh)
 
-# Staged-only (for commit message generation)
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/git-report.sh" --staged-only
-```
-
-If `${CLAUDE_PLUGIN_ROOT}` is not set (e.g. running outside a hook), find
-the script relative to the workspace or use the absolute path.
+Execute this script in the terminal using `bash`:
+- With no arguments for a full report (staged, unstaged, untracked, recent commits, remote diff)
+- With `--staged-only` for only staged changes (use when generating a commit message)
 
 ### 2. Analyze — Classify every changed file
 

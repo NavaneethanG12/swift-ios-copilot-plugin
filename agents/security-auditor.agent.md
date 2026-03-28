@@ -7,20 +7,20 @@ tools: [read, search, execute]
 handoffs:
   - label: "Fix Architecture"
     agent: ios-architect
-    prompt: "Redesign the module to address the security concerns found."
-    send: false
+    prompt: "The security audit above found architectural security concerns (see the findings table). Redesign the affected module(s) to address these issues — proper data isolation, access control boundaries, and secure data flow. Reference the specific findings from the audit."
+    send: true
   - label: "Apply Fixes"
     agent: app-builder
-    prompt: "Apply the security fixes recommended in the audit above."
-    send: false
+    prompt: "Apply all Critical and High security fixes from the audit report above. For each finding: read the affected file, apply the exact remediation described, then verify with R5. Skip Pre-Work and Phase 1 — go directly to Phase 0.25 (Apply Review Fixes). Treat each security finding as a required fix."
+    send: true
   - label: "Build Feature"
     agent: app-builder
-    prompt: "Build the secure feature implementation planned above."
-    send: false
+    prompt: "Build the secure feature implementation described in the audit recommendations above. Follow the security requirements specified (Keychain for secrets, SSL pinning, biometric auth, etc.). Apply all Code Integrity Rules (R1–R9) and Memory Rules (M1–M7). Skip Pre-Work if the audit already assessed the knowledge needed."
+    send: true
   - label: "Write Tests"
     agent: test-engineer
-    prompt: "Write tests verifying the security requirements from the audit."
-    send: false
+    prompt: "Write security regression tests for the vulnerabilities found in the audit above. For each Critical and High finding, write a test that verifies the fix prevents the vulnerability. Tests should cover: Keychain storage (not UserDefaults for secrets), ATS compliance, certificate pinning behavior, and input validation."
+    send: true
   - label: "New Task"
     agent: ios-copilot
     prompt: "Route my next request to the right specialist."
@@ -61,3 +61,10 @@ When fixes need to be applied, hand off to `app-builder` via the
 - Never suggest security through obscurity as primary defense.
 - Always recommend Apple's frameworks (Security, CryptoKit, LocalAuthentication).
 - Flag `NSAllowsArbitraryLoads = YES` and plain-text credentials as Critical.
+
+## Documentation Output
+
+This agent has read-only tools and cannot create files. If your audit
+should be saved as a reference doc (security audit report, compliance
+checklist), include the complete content in a fenced code block in your
+response. The orchestrator or user can persist it via **app-builder**.

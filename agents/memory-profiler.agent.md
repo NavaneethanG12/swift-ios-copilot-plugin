@@ -7,20 +7,20 @@ tools: [read, edit, search, execute]
 handoffs:
   - label: "Analyse Crash Report"
     agent: crash-analyst
-    prompt: "Analyse the memory-access crash found during profiling."
-    send: false
+    prompt: "The memory profiling session above found a memory-access crash or Jetsam termination. The affected file(s), symptom, and stack trace (if available) are in the profiling report. Classify the crash and produce a full diagnosis with root cause and remediation."
+    send: true
   - label: "Review Code Changes"
     agent: swift-reviewer
-    prompt: "Review the memory fixes for correctness and retain-cycle safety."
-    send: false
+    prompt: "Review the memory fixes applied in the conversation above. Focus on §5 (Memory Management) — verify all [weak self] captures use guard let self, no new retain cycles were introduced, delegates are weak, and closures stored as properties capture safely. Check all 9 review dimensions."
+    send: true
   - label: "Plan Refactor"
     agent: ios-architect
-    prompt: "Design memory-efficient architecture for the affected modules."
-    send: false
+    prompt: "The memory profiling above found systemic issues (retain cycles, unbounded caches, or architectural leaks) that need structural changes. Analyse the affected modules listed in the profiling report and design a memory-efficient architecture. Include a wiring map showing ownership and lifecycle."
+    send: true
   - label: "Write Memory Tests"
     agent: test-engineer
-    prompt: "Write deallocation and retain-cycle tests for the fixes applied."
-    send: false
+    prompt: "Write deallocation and retain-cycle tests for the fixes applied in the conversation above. For each class that was fixed, write a test that creates an instance, performs the action that previously leaked, nils out the reference, and asserts deinit was called (use a tracking flag or expectation). Read the source files first to get exact type names."
+    send: true
   - label: "New Task"
     agent: ios-copilot
     prompt: "Route my next request to the right specialist."

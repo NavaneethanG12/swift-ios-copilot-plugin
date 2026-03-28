@@ -8,28 +8,32 @@ tools: [read, search, web]
 handoffs:
   - label: "Start Implementation"
     agent: app-builder
-    prompt: "Implement the first milestone from the plan above."
-    send: false
+    prompt: "Implement Milestone 1 from the architecture plan above. The plan includes module breakdown, data flow, wiring map, and file list. Follow the plan exactly — create the files listed, use the patterns specified, and wire everything as described. Apply all Code Integrity Rules (R1–R9). Report wiring status when done."
+    send: true
+  - label: "Continue Implementation"
+    agent: app-builder
+    prompt: "Continue implementing the architecture plan above. Review which milestones are already done by checking the files that exist in the project, then implement the next unfinished milestone. Follow the plan exactly — create the files listed, use the patterns specified, and wire everything as described. Apply all Code Integrity Rules (R1–R9). After completing each milestone, report wiring status and proceed to the next milestone until all milestones are done or you need user input."
+    send: true
   - label: "Profile Memory Impact"
     agent: memory-profiler
-    prompt: "Audit affected modules for memory issues before implementation."
-    send: false
+    prompt: "Audit the modules described in the architecture plan above for existing memory issues before implementation begins. Focus on the files listed in the plan's Module Breakdown. Check for retain cycles, unbounded caches, and missing deinit cleanup."
+    send: true
   - label: "Review Crash History"
     agent: crash-analyst
-    prompt: "Review crash reports for the affected modules."
-    send: false
+    prompt: "Check if there are crash logs or known crash patterns in the modules affected by the architecture plan above. The plan lists the modules and key files — focus on those."
+    send: true
   - label: "Build the App"
     agent: app-builder
-    prompt: "Scaffold the project following the architecture plan above."
-    send: false
+    prompt: "Scaffold the full project following the architecture plan above. Create the folder structure, Package.swift (if SPM), app entry point, and stub files for every module listed in the Module Breakdown. Apply the project-scaffolding skill. Then implement all milestones in order."
+    send: true
   - label: "Write Tests"
     agent: test-engineer
-    prompt: "Design tests for the modules in the plan above."
-    send: false
+    prompt: "Design a test plan for the modules in the architecture plan above. For each module listed in the Module Breakdown, identify what to test (ViewModels, services, repositories) and write unit tests. Read the source files first to get exact type names and method signatures."
+    send: true
   - label: "Security Audit"
     agent: security-auditor
-    prompt: "Audit the architecture plan for security concerns."
-    send: false
+    prompt: "Review the architecture plan above for security concerns. Check the data flow for sensitive data exposure, the module boundaries for proper access control, and the tech stack choices for known vulnerabilities. Produce a findings table."
+    send: true
   - label: "New Task"
     agent: ios-copilot
     prompt: "Route my next request to the right specialist."
@@ -114,6 +118,7 @@ missing**, switch to this workflow:
 
    | Dimension | Look for |
    |---|---|
+   | **UI polish & HIG compliance** | Inconsistent spacing/padding, hardcoded font sizes instead of text styles, touch targets < 44pt, missing safe area respect, non-adaptive layouts, color-only indicators, magic number dimensions |
    | **UX polish** | Missing empty states, pull-to-refresh, skeleton loaders, haptic feedback, animations |
    | **Accessibility** | VoiceOver labels, Dynamic Type, Reduce Motion support |
    | **Data & sync** | Offline mode, CloudKit/iCloud sync, background refresh |
@@ -155,3 +160,12 @@ missing**, switch to this workflow:
 4. After presenting suggestions, offer the **Start Implementation** handoff
    for the user's chosen feature — which enters the normal architecture
    planning workflow to produce milestones.
+
+## Documentation Output
+
+This agent has read-only tools and cannot create files. If your output
+includes content that should be saved as a document (architecture plan,
+module breakdown, reference doc), include the complete content in a fenced
+code block in your response. The orchestrator or the user can persist it
+via **app-builder** (which has edit tools). Load the **feature-docs** skill
+for structure and templates when producing documentation.
