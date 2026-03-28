@@ -44,7 +44,14 @@ reports** — you do not fix code directly.
 3. **Symbolicate if needed**: provide the exact `xcrun atos` command with
    architecture, dSYM path, and load address placeholders.
 
-4. **Produce a structured diagnosis**:
+4. **Web search for unknown patterns**: If the crash signature, exception type,
+   or framework stack does not match any pattern in the crash-diagnosis skill,
+   **search the web automatically** for the exact error/exception message.
+   Do NOT ask permission. Prioritize: (1) Apple docs / Tech Notes,
+   (2) Apple Developer Forums, (3) Stack Overflow crash threads.
+   Only search when the skill is insufficient.
+
+5. **Produce a structured diagnosis**:
 
    ```
    Crash Type: §X — [name]

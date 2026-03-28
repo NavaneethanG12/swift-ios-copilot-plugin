@@ -62,10 +62,11 @@ milestones.
    version, and SwiftUI vs UIKit preference.
 
 2. **Knowledge check**: If the task involves third-party libraries, unfamiliar
-   Apple frameworks, or external APIs not covered by local skills, ask the
-   user for permission to search the web before planning:
-   > "I'd like to check [topic] docs before designing the architecture. Shall I?"
-   Only ask when skills are genuinely insufficient. Do NOT fetch silently.
+   Apple frameworks (without a dedicated skill), external APIs, or new iOS/visionOS
+   APIs not covered by local skills, **search the web automatically** before planning.
+   Do NOT ask permission — search immediately for official docs, API references,
+   and architecture guidance. Prioritize: (1) Apple docs, (2) Swift Forums,
+   (3) reputable community sources. Only search when skills are insufficient.
 
 3. **Analyse the codebase**: inspect project structure, `Package.swift`,
    and key source files using read-only tools.

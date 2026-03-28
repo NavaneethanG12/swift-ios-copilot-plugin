@@ -48,7 +48,7 @@ Slash commands (skip orchestrator):
 | **Build** | `swiftui-development` | State management, navigation, views, animations |
 | **Build** | `uikit-development` | UIViewController lifecycle, programmatic Auto Layout, UITableView, UICollectionView |
 | **Build** | `networking` | API client, endpoints, retry, auth, ATS |
-| **Build** | `data-persistence` | SwiftData, Keychain, UserDefaults, file storage |
+| **Build** | `data-persistence` | SwiftData, Core Data, DB architecture, relationships, migrations, Keychain, UserDefaults, CloudKit sync |
 | **Build** | `architecture-patterns` | MVVM, TCA, DI, Coordinator, SPM modules |
 | **Build** | `design-system` | Color tokens, typography, spacing, OSLog, error handling |
 | **Quality** | `swift-code-review` | 9-dimension review checklist (incl. compilation safety, wiring completeness) |
@@ -300,6 +300,7 @@ A typical interaction loads 1 agent + 1–3 skills ≈ 3,000–5,000 tokens of p
 
 | Version | Skills | Agents | Changes |
 |---|---|---|---|
+| 4.11.0 | 28 | 8 | Expanded `data-persistence` skill: full Core Data stack (NSPersistentContainer, NSFetchRequest, NSFetchedResultsController, batch ops), SwiftData advanced (@Attribute options, @Unique, #Index, ModelConfiguration, FetchDescriptor, ModelActor), DB architecture & relationship patterns (1:1, 1:N, M:N, self-ref, enums), delete rules reference, schema migrations (VersionedSchema, SchemaMigrationPlan, Core Data staged), history tracking, CloudKit sync, repository pattern |
 | 4.10.0 | 28 | 8 | +4 skills (uikit-development, compiler-errors, feature-docs, git-assistant), +7 slash commands, +PreCompact hook, auto web search (no permission gate), utility scripts |
 | 4.4.0 | 24 | 8 | Web knowledge check with user permission gate — orchestrator and specialists ask before fetching |
 | 4.3.1 | 24 | 8 | R9 (explicit `self` in closures), `[weak self]` + `guard let self` pattern enforced everywhere |

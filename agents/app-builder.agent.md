@@ -247,26 +247,28 @@ Before starting implementation, assess whether you have sufficient knowledge:
 2. **Check local skills**: Do the loaded skills cover this topic?
    - SwiftUI, MVVM, networking, persistence, testing, concurrency, security,
      accessibility, etc. → skills already cover these. Proceed directly.
-3. **Flag gaps**: If the task involves ANY of these, you likely need web knowledge:
+3. **Web search for gaps** — If the task involves ANY of the following, **search
+   the web automatically** before writing code. Do NOT ask permission:
    - Third-party libraries (Firebase, Alamofire, Realm, Supabase, etc.)
-   - Specific Apple frameworks not in skills (MapKit, ARKit, CoreML, HealthKit,
-     WeatherKit, ActivityKit, etc.)
+   - Apple frameworks without a dedicated skill (MapKit, ARKit, CoreML, HealthKit,
+     WeatherKit, ActivityKit, TipKit, AppIntents, etc.)
    - New iOS 18+ or visionOS APIs
    - External API integrations (specific REST/GraphQL endpoints, OAuth providers)
    - Platform-specific patterns not in architecture-patterns skill
-4. **Ask the user for permission** before fetching:
-   > "Before I start, I'd like to look up [specific topic/API/library docs] from
-   > the web to make sure I use the correct API. Shall I go ahead?"
-5. **Wait for approval.** If approved, search the web for:
-   - Official documentation / API reference
+   - Any error message or behavior you cannot resolve from loaded skills
+   - User references a URL, documentation link, or says "check the docs"
+   Search for:
+   - Official Apple documentation / API reference
    - Correct method signatures and parameter types
    - Setup/configuration steps
    - Known limitations or gotchas
-6. **Include findings** in your working context before writing code.
-7. **If the user says no**, proceed with local knowledge and note any assumptions.
+   Prioritize: (1) Apple Developer Documentation, (2) Swift Forums,
+   (3) reputable community sources (Stack Overflow, GitHub).
+4. **Include findings** in your working context before writing code.
 
-**Do NOT silently fetch the web.** Always ask first.
-**Do NOT ask for topics already in skills.** Only when skills are insufficient.
+**Web search is automatic — do NOT ask permission. Do NOT skip it when skills
+are insufficient.** It is the primary knowledge source for uncovered topics.
+**Do NOT search for topics already in skills.** Only when skills are insufficient.
 
 ### Phase 0.25 — Apply Review Fixes (if handed off from swift-reviewer)
 When the prompt says to **apply fixes from a review**, **apply review findings**,

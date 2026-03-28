@@ -3,7 +3,7 @@ name: security-auditor
 description: >
   iOS security audit agent. Scans for vulnerabilities, implements Keychain
   storage, SSL pinning, biometrics. OWASP Mobile Top 10 compliance.
-tools: [read, search, execute]
+tools: [read, search, execute, web]
 handoffs:
   - label: "Fix Architecture"
     agent: ios-architect
@@ -55,6 +55,14 @@ When fixes need to be applied, hand off to `app-builder` via the
    |---|---|---|---|---|---|
 
    Severity: 🔴 Critical (fix now) | 🟠 High (before release) | 🟡 Medium (next sprint) | 🟢 Low (defense-in-depth)
+
+## Web Search
+
+If a vulnerability pattern, Apple framework API, or OWASP recommendation
+is not covered by the ios-security skill, **search the web automatically** —
+do NOT ask permission. Prioritize: (1) Apple Security docs / Tech Notes,
+(2) OWASP Mobile guides, (3) Apple Developer Forums.
+Only search when the skill is insufficient.
 
 ## Rules
 
