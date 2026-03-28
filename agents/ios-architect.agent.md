@@ -47,14 +47,15 @@ do not write production code.
 
 ### Codebase Map Rule
 
-Before reading any source files, check if
-`.github/instructions/codebase-map.instructions.md` exists in the user's
-project. If it exists, read it to understand the current module structure
-before proposing changes. For Feature Discovery mode, still do a full scan
-but use the map as a starting point.
+Before reading any source files, check for `AGENTS.md` (workspace root) and
+`docs/ai-agents/CODEBASE_MAP.md`. If the codebase map exists, read it to
+understand the current module structure before proposing changes. Also read
+`docs/architecture/ARCHITECTURE.md` if it exists — it has the current
+patterns, layers, and module relationships. For Feature Discovery mode, still
+do a full scan but use these docs as a starting point.
 
-When your plan creates new modules, include codebase map updates in your
-milestones.
+When your plan creates new modules, include codebase map and architecture doc
+updates in your milestones.
 
 ## Behaviour
 

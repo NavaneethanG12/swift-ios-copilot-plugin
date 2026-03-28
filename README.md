@@ -2,8 +2,8 @@
 
 Token-efficient VS Code Copilot plugin for **iOS/iPadOS/macOS development**.
 Orchestrator agent (`ios-copilot`) classifies your prompt, restructures it
-for clarity, and routes to 7 specialist agents backed by 28 compact skills.
-Includes 7 slash commands for common workflows.
+for clarity, and routes to 7 specialist agents backed by 29 compact skills.
+Includes 8 slash commands for common workflows.
 
 ## How it Works
 
@@ -72,6 +72,7 @@ Slash commands (skip orchestrator):
 | **Platform** | `deep-linking` | Universal Links, URL schemes, App Clips, Spotlight |
 | **Platform** | `background-tasks` | BGTaskScheduler, background URLSession |
 | **Platform** | `widgets-extensions` | WidgetKit, Share/Action extensions, App Groups |
+| **Context** | `project-knowledge` | Auto-generate project knowledge context (AGENTS.md, codebase map, architecture, conventions, glossary) |
 
 ### Agents (8)
 
@@ -88,10 +89,11 @@ Slash commands (skip orchestrator):
 
 All specialists have a **[New Task]** handoff button that returns to the orchestrator.
 
-### Slash Commands (7)
+### Slash Commands (8)
 
 | Command | Agent | Purpose |
 |---|---|---|
+| `/bootstrap-project` | app-builder | Generate full project knowledge context (AGENTS.md + docs/) for the workspace |
 | `/audit-code` | swift-reviewer | Review codebase for quality, correctness, best practices (all 9 dimensions) |
 | `/audit-hangs` | app-builder | Detect main thread hangs, hitches, UI responsiveness issues |
 | `/audit-memory` | memory-profiler | Scan project for memory leaks, retain cycles, unbounded growth (Phases 1–4) |
@@ -104,7 +106,7 @@ All specialists have a **[New Task]** handoff button that returns to the orchest
 
 | Hook | Trigger | Action |
 |---|---|---|
-| `SessionStart` | New agent session begins | Prints welcome banner with plugin version, skills, and agents |
+| `SessionStart` | New agent session begins | Runs project discovery, shows knowledge context status, prints welcome banner |
 | `PostToolUse` | After file write/edit | Auto-formats edited `.swift` files with `swift-format` |
 | `PreCompact` | Before context compaction | Extracts session state (files, decisions, errors) to `.github/session-context.md` |
 
@@ -112,7 +114,8 @@ All specialists have a **[New Task]** handoff button that returns to the orchest
 
 | Script | Location | Purpose |
 |---|---|---|
-| `session-start.sh` | `scripts/` | Welcome banner, reads version from `plugin.json`, checks for codebase map |
+| `session-start.sh` | `scripts/` | Runs project-discover.sh, shows knowledge context status, welcome banner |
+| `project-discover.sh` | `scripts/` | Detects project type, state, UI framework, and existing knowledge docs — returns JSON |
 | `post-edit.sh` | `scripts/` | Parses tool output, runs `swift-format --in-place` on edited `.swift` files |
 | `pre-compact.sh` | `scripts/` | Extracts key context from transcript JSON for context survival across compaction |
 | `xcode-build-errors.sh` | `skills/compiler-errors/` | Runs xcodebuild, captures and structures compiler errors for Phase 0.75 |
@@ -121,6 +124,45 @@ All specialists have a **[New Task]** handoff button that returns to the orchest
 | `arc-checklist.md` | `skills/memory-management/` | Quick memory audit reference for retain cycles and growth |
 
 ## Installation
+
+### Project Knowledge Context
+
+When you open any project with this plugin, it automatically detects whether
+project knowledge docs exist. If they don't, it nudges you to generate them
+(one-time setup). This works for **new**, **ongoing**, and **completed** projects.
+
+```
+Your project workspace:
+├── AGENTS.md                              ← Auto-read by VS Code every prompt
+├── docs/
+│   ├── ai-agents/
+│   │   ├── README.md                      ← Index of all docs
+│   │   ├── CODEBASE_MAP.md                ← "I want to do X → look in file Y"
+│   │   ├── GLOSSARY.md                    ← Domain terms + code references
+│   │   ├── PLAN_EXECUTION_CONTRACT.md     ← Rules for multi-stage plans
+│   │   ├── DOC_TEMPLATE.md                ← Template for adding new docs
+│   │   └── DOC_UPDATE_PROTOCOL.md         ← When/how to update docs
+│   ├── architecture/
+│   │   └── ARCHITECTURE.md                ← Patterns, layers, data flow
+│   └── development/
+│       └── CONVENTIONS.md                 ← Naming, style, project-specific patterns
+└── (your source code)
+```
+
+**How to generate:** Tell ios-copilot "bootstrap the project knowledge" or use
+the `/bootstrap-project` slash command.
+
+**How it works:**
+1. The `SessionStart` hook runs `project-discover.sh` which detects your project
+   type (SPM/Xcode), state (new/ongoing/mature), UI framework, and which docs exist.
+2. If docs are missing, you're prompted to generate them.
+3. The `project-knowledge` skill guides the app-builder agent through scanning your
+   project and generating all docs with real data from your code.
+4. Once generated, all agents automatically read these docs to understand your
+   project before working on it.
+
+**When docs get updated:** Only on structural changes (new module, major refactor,
+architecture change). See `docs/ai-agents/DOC_UPDATE_PROTOCOL.md`.
 
 ### Option 1: Local Install via VS Code Settings (Recommended)
 
@@ -160,6 +202,17 @@ All specialists have a **[New Task]** handoff button that returns to the orchest
 - `chat.plugins.enabled` set to `true` in settings
 - *(Optional)* [`swift-format`](https://github.com/apple/swift-format) on PATH — enables the auto-format hook
 
+### Getting Started (after install)
+
+1. Open your iOS/macOS project in VS Code.
+2. Open Copilot Chat and select **ios-copilot** from the agent picker.
+3. **Run `/bootstrap-project` once** — this scans your project and generates the
+   knowledge context (`AGENTS.md` + `docs/`). It's a one-time setup per project.
+4. Start working — type any prompt and the orchestrator handles the rest.
+
+> If you skip step 3, the orchestrator will detect the missing context on your
+> first prompt and offer to generate it automatically.
+
 ## Usage
 
 ### Recommended: Use the Orchestrator
@@ -172,7 +225,7 @@ All specialists have a **[New Task]** handoff button that returns to the orchest
    - "is my keychain code secure?"
 3. The orchestrator will:
    - Show you a **Structured Prompt** (so you see what it understood)
-   - Check if local skills are sufficient — if not, **ask your permission** to search the web
+   - Check if local skills are sufficient — if not, **search the web automatically**
    - Route to the right specialist automatically
 4. The specialist applies **Code Integrity Rules** (R1–R9) and **Memory Leak Prevention** (M1–M7) to every file.
 5. After the specialist finishes, click **[New Task]** to return to the orchestrator.

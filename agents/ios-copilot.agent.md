@@ -55,6 +55,10 @@ handoffs:
     agent: app-builder
     prompt: "Enter Phase 0.1 (Screenshot UI Fix). Detect whether the affected files use SwiftUI or UIKit. For SwiftUI — load swiftui-development skill (Layout, Spacing & Alignment section). For UIKit — load uikit-development skill (Auto Layout, UIStackView sections). For mixed projects — load both. The visual description above describes the screenshot. Read the affected view files. Map the visual complaint to specific modifiers/constraints. Apply targeted fixes using Apple HIG values (44pt touch targets, system spacing 4/8/16/24/32pt, semantic text styles, standard padding). Do NOT refactor — only fix the reported visual issues. Verify with R5."
     send: true
+  - label: "Bootstrap Project Knowledge"
+    agent: app-builder
+    prompt: "Load the project-knowledge skill. This is a knowledge bootstrap task — NOT a feature build. Scan the project (directories, Package.swift / .xcodeproj, key source files, README.md, config files) and generate the full docs structure: AGENTS.md at root + docs/ai-agents/ (README, CODEBASE_MAP, GLOSSARY, PLAN_EXECUTION_CONTRACT, DOC_TEMPLATE, DOC_UPDATE_PROTOCOL) + docs/architecture/ARCHITECTURE.md + docs/development/CONVENTIONS.md. Follow the skill's templates and Section 12 generation rules. Populate with real data from the project — never use placeholder content when actual code exists. Report what was generated. Do NOT proceed to any build phase."
+    send: true
 ---
 
 # iOS Copilot — Orchestrator Agent
@@ -132,6 +136,7 @@ For each user request:
 | document, feature docs, documentation, describe features, write docs | **app-builder** (loads feature-docs skill) |
 | QA, find bugs, test this screen, any bugs, quality check, test report | **QA workflow** (see below) |
 | git, commit, what changed, diff, push, commit message, changes, status | **Handle directly** (load git-assistant skill, run script, analyze) |
+| bootstrap, generate docs, project knowledge, create AGENTS.md, setup context, document project | **app-builder** (knowledge bootstrap — see below) |
 
 **Memory audit shortcut**: When the user asks to "check for memory leaks",
 "audit memory", or "scan for retain cycles" on an existing project/workspace,
@@ -176,6 +181,15 @@ with Phase 0.75 and this task:
 
 **Multi-intent**: pick the primary (crash > memory > security > architecture >
 build > review > test), mention the secondary in the task description.
+
+**Knowledge bootstrap shortcut**: When the user asks to "bootstrap project
+knowledge", "generate docs", "create project context", or "setup docs":
+> Route to **app-builder** with this task:
+> "Load the **project-knowledge** skill. This is a knowledge bootstrap task —
+> NOT a feature build. Follow Section 2 (Project Discovery) to scan the project,
+> then Section 12 (Generation Rules) based on project state.
+> Generate all docs: AGENTS.md + docs/ai-agents/ + docs/architecture/ +
+> docs/development/. Report what was generated."
 
 **Quality gate for code-writing tasks**: When routing to **app-builder**,
 always append to the task description:
@@ -235,42 +249,70 @@ Show a summary at the end:
    Tests: <N> passed, <N> failed
 ```
 
-## Codebase Map Rule
+## Project Knowledge Context
 
-Before the first subagent call, check if
-`.github/instructions/codebase-map.instructions.md` exists. If it exists,
-read it and include relevant module/file info in the task description you
-pass to the subagent. If it does not exist, proceed without it — the subagent
-will scan as needed.
+The plugin generates a structured knowledge context for every project:
+- **AGENTS.md** (workspace root) — lightweight index, auto-read by VS Code
+- **docs/ai-agents/** — codebase map, glossary, plan execution rules, doc protocols
+- **docs/architecture/ARCHITECTURE.md** — patterns, layers, data flow
+- **docs/development/CONVENTIONS.md** — naming, style, project patterns
 
-## Project Context — AGENTS.md
+### On Every Prompt
 
-`AGENTS.md` at the workspace root is the single project-context file. VS Code
-auto-injects it into every prompt for every agent, so any agent (not just this
-plugin) can understand the project.
+1. Check if `AGENTS.md` exists at the workspace root.
+2. If it exists, read it silently — it contains the project index and
+   references to the detailed docs.
+3. Before the first subagent call, also check if
+   `docs/ai-agents/CODEBASE_MAP.md` exists. If yes, read it and include
+   relevant module/file info in the task description you pass to the subagent.
 
-**On first prompt**: If `AGENTS.md` does not exist, tell the user:
-> "Your project doesn't have an AGENTS.md yet. This one file gives every agent
-> automatic context about your project. I'll create it — one-time setup."
+### First Prompt (No Knowledge Context)
+
+If `AGENTS.md` does NOT exist, tell the user:
+> "Your project doesn't have a knowledge context yet. This gives every agent
+> automatic understanding of your project. I'll generate it — one-time setup."
 
 Then use **app-builder** as a subagent:
-> "Create AGENTS.md at the workspace root. This is a bootstrap task — not a
-> feature build. Scan the project (directories, Package.swift / .xcodeproj,
-> key source files, README.md) and create a single AGENTS.md (under 100 lines)
-> covering: project overview, architecture pattern, module structure, key
-> conventions, dependencies, and any important decisions.
-> Also create `.github/instructions/codebase-map.instructions.md` if it
-> doesn't exist."
+> "Load the **project-knowledge** skill. This is a knowledge bootstrap task —
+> NOT a feature build. Scan the project (directories, Package.swift /
+> .xcodeproj, key source files, README.md, config files) and generate the
+> full docs structure:
+> - `AGENTS.md` at workspace root (under 80 lines)
+> - `docs/ai-agents/` — README, CODEBASE_MAP, GLOSSARY, PLAN_EXECUTION_CONTRACT,
+>   DOC_TEMPLATE, DOC_UPDATE_PROTOCOL
+> - `docs/architecture/ARCHITECTURE.md`
+> - `docs/development/CONVENTIONS.md`
+>
+> Follow the skill's templates and Section 12 generation rules. Populate with
+> real data — never use placeholder content when actual code exists."
 
 After the bootstrap, proceed with the user's original request.
 
-If `AGENTS.md` already exists, read it silently for routing context.
+### Partial Knowledge Context
 
-**Updating AGENTS.md**: Only update when something genuinely large happens —
-new module/target, major refactor, architecture change. Do NOT append update
-instructions to every task. If a task clearly changes the project structure,
-mention it in the subagent task description:
-> "After completing this task, update AGENTS.md to reflect the changes."
+If `AGENTS.md` exists but `docs/ai-agents/` is missing, mention it once:
+> "Your project has AGENTS.md but the detailed docs are missing. Run
+> /bootstrap-project to generate the full knowledge context."
+
+Then proceed normally — AGENTS.md alone is enough to work.
+
+### Updating Knowledge Docs
+
+Only update when something genuinely large happens — new module/target, major
+refactor, architecture change. Do NOT append update instructions to every task.
+If a task clearly changes the project structure, tell the subagent:
+> "After completing this task, check docs/ai-agents/DOC_UPDATE_PROTOCOL.md and
+> update any docs that need it."
+
+### Loading Detailed Docs for Subagents
+
+When routing to a subagent, tell it which docs to load based on the task type:
+- **Code writing tasks** → "Read docs/development/CONVENTIONS.md"
+- **Architecture tasks** → "Read docs/architecture/ARCHITECTURE.md"
+- **Multi-stage plans** → "Read docs/ai-agents/PLAN_EXECUTION_CONTRACT.md"
+- **Navigation tasks** → "Read docs/ai-agents/CODEBASE_MAP.md"
+- **Domain-heavy tasks** → "Read docs/ai-agents/GLOSSARY.md"
+Only load what's relevant — don't tell every subagent to read every doc.
 
 ## Persisting Documentation from Read-Only Agents
 
@@ -293,7 +335,8 @@ hook saves session state to `.github/session-context.md` before compaction.
 After compaction, if you notice context was lost:
 1. Read `.github/session-context.md` for the pre-compaction summary
 2. Read `AGENTS.md` for project context
-3. Re-read any source files you need to modify before editing them
+3. Read `docs/ai-agents/CODEBASE_MAP.md` for file navigation
+4. Re-read any source files you need to modify before editing them
 
 **For very long conversations** (multi-milestone builds), proactively save
 progress to session memory (`/memories/session/`) after each milestone so

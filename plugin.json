@@ -2,7 +2,7 @@
   "name": "swift-ios-dev",
   "displayName": "Swift & iOS Developer",
   "description": "Token-efficient Copilot plugin for iOS/iPadOS/macOS development. Orchestrator agent classifies prompts, restructures them for clarity, and routes to 7 specialist agents backed by 28 compact skills. Includes 7 slash commands for common workflows.",
-  "version": "4.11.0",
+  "version": "5.0.0",
   "publisher": "local",
   "mcpServers": ".mcp.json",
   "keywords": [

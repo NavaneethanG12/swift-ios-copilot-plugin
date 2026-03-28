@@ -123,7 +123,8 @@ if [[ -z "$SUMMARY" ]]; then
   SUMMARY="# Session Context (Pre-Compaction Summary)
 
 Context was compacted. Previous conversation details were truncated.
-Check .github/session-context.md and AGENTS.md for project context.
+Check AGENTS.md for project index, docs/ai-agents/CODEBASE_MAP.md for
+file navigation, and docs/architecture/ARCHITECTURE.md for patterns.
 Re-read relevant source files before making changes."
 fi
 
@@ -138,6 +139,6 @@ echo "$SUMMARY" > "$SESSION_CONTEXT_FILE"
 # ---------------------------------------------------------------------------
 cat <<JSONEOF
 {
-  "systemMessage": "⚠️ Context window compacted. Session summary saved to .github/session-context.md. Key project context from AGENTS.md and the codebase map are still available. Re-read source files before editing."
+  "systemMessage": "⚠️ Context window compacted. Session summary saved to .github/session-context.md. Key project context from AGENTS.md, docs/ai-agents/CODEBASE_MAP.md, and docs/architecture/ARCHITECTURE.md are still available. Re-read source files before editing."
 }
 JSONEOF

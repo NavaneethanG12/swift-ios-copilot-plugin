@@ -35,12 +35,15 @@ complete, production-ready apps.
 ### Codebase Map Rule
 
 Before reading source files, check for `AGENTS.md` (workspace root) and
-`.github/instructions/codebase-map.instructions.md`. Read whatever exists
-and use it as context. If the codebase map exists, only open files listed
-under the relevant module(s). If the orchestrator's structured prompt already
-lists the relevant files, use that directly.
+`docs/ai-agents/CODEBASE_MAP.md`. Read whatever exists and use it as context.
+If the codebase map exists, only open files listed under the relevant module(s).
+If the orchestrator's structured prompt already lists the relevant files, use
+that directly. Also check `docs/development/CONVENTIONS.md` before writing code
+to match the project's patterns.
 
-After creating new modules or files, update the codebase map.
+After creating new modules or files, update the codebase map if the change is
+structural (new module, new target, new feature area). Follow
+`docs/ai-agents/DOC_UPDATE_PROTOCOL.md` for update rules.
 
 ---
 
@@ -240,7 +243,8 @@ UIView.animate(withDuration: 0.3) { [self] in
 Before starting implementation, assess whether you have sufficient knowledge:
 
 0. **Read existing project context** — Check for and read `AGENTS.md` (workspace
-   root) and `.github/instructions/codebase-map.instructions.md` if they exist.
+   root) and `docs/ai-agents/CODEBASE_MAP.md` if they exist. Also read
+   `docs/development/CONVENTIONS.md` to match the project's code style.
    Use this to understand the project's patterns and structure before writing code.
 1. **Identify the tech stack** required by the task: frameworks, APIs, libraries,
    patterns, services.
@@ -424,42 +428,36 @@ After all views and data types are created, before moving to Phase 4:
 
 ## Knowledge Base Bootstrap (when requested by ios-copilot)
 
-When the task says "Create AGENTS.md" or "bootstrap task", this is NOT a
-feature build. Do the following:
+When the task says "bootstrap", "generate docs", "project knowledge", or
+"create AGENTS.md", this is NOT a feature build. Load the **project-knowledge**
+skill and follow it completely:
 
-1. **Scan the project** — list top-level directories, read Package.swift or
-   .xcodeproj, read key source files (App entry, README.md, any existing
-   config or doc files).
-2. **Create `AGENTS.md`** at the workspace root. Keep it under 100 lines:
-   ```markdown
-   # [Project Name]
+1. **Discover the project** — follow the skill's Section 2 (Project Discovery):
+   - Detect project type (SPM/Xcode/workspace)
+   - Detect project state (new/ongoing/mature)
+   - Read key files (manifest, app entry, README, config, representative sources)
 
-   ## Overview
-   [1-2 sentences: what the app does, platform, deployment target]
+2. **Generate all knowledge docs** following the skill's templates (Sections 3–11):
 
-   ## Architecture
-   [Pattern + Navigation + Data layer]
+   | File | Template Section |
+   |------|-----------------|
+   | `AGENTS.md` (root) | Section 3 — under 80 lines, auto-read index |
+   | `docs/ai-agents/README.md` | Section 11 — doc index |
+   | `docs/ai-agents/CODEBASE_MAP.md` | Section 4 — task → file lookup |
+   | `docs/ai-agents/GLOSSARY.md` | Section 7 — domain terms + code refs |
+   | `docs/ai-agents/PLAN_EXECUTION_CONTRACT.md` | Section 8 — multi-stage rules |
+   | `docs/ai-agents/DOC_TEMPLATE.md` | Section 9 — template for new docs |
+   | `docs/ai-agents/DOC_UPDATE_PROTOCOL.md` | Section 10 — update protocol |
+   | `docs/architecture/ARCHITECTURE.md` | Section 5 — patterns, layers, flow |
+   | `docs/development/CONVENTIONS.md` | Section 6 — naming, style, patterns |
 
-   ## Modules
-   | Module | Purpose | Key Files |
-   |--------|---------|-----------|
-   | ...    | ...     | ...       |
+3. **Apply generation rules** from the skill's Section 12:
+   - **New project** (< 5 Swift files): Skeleton docs, mark TODO for growth
+   - **Ongoing project** (5–50 files): Full scan, detect real patterns
+   - **Mature project** (50+ files): Deep analysis, comprehensive glossary
+   - **Universal rule**: NEVER assume — always detect from actual code
 
-   ## Conventions
-   - [Key patterns: naming, error handling, concurrency approach]
-
-   ## Dependencies
-   | Library | Version | Purpose |
-   |---------|---------|---------|
-   | ...     | ...     | ...     |
-
-   ## Restricted Files
-   <!-- Add paths that agents should NEVER read or modify -->
-   <!-- Examples: secrets, keys, certificates, .env files -->
-   ```
-3. **Create codebase map** if missing:
-   `.github/instructions/codebase-map.instructions.md`
-4. **Report** what was created. Do NOT proceed to any build phase.
+4. **Report** what was generated. Do NOT proceed to any build phase.
 
 ## Subagent Mode (Single Milestone)
 

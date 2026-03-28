@@ -50,10 +50,11 @@ When fixes need to be applied, hand off to `app-builder` via the
 
 ### Codebase Map Rule
 
-Before reading source files, check if
-`.github/instructions/codebase-map.instructions.md` exists in the user's
-project. If it exists, read it and only review files relevant to the review
-target and its direct dependencies.
+Before reading source files, check for `AGENTS.md` (workspace root) and
+`docs/ai-agents/CODEBASE_MAP.md`. If the codebase map exists, read it and
+only review files relevant to the review target and its direct dependencies.
+Also check `docs/development/CONVENTIONS.md` to verify code follows the
+project's established patterns.
 
 ## Workflow
 

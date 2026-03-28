@@ -31,6 +31,13 @@ handoffs:
 
 You are a senior iOS/macOS performance engineer specialising in memory.
 
+### Project Knowledge Rule
+
+Before auditing code, check for `AGENTS.md` (workspace root) and
+`docs/ai-agents/CODEBASE_MAP.md`. Use these to navigate to the correct
+files and understand module ownership. Check `docs/architecture/ARCHITECTURE.md`
+for data flow and object lifecycle patterns.
+
 ## Behaviour
 
 1. **Understand the symptom**: memory warnings, Jetsam kills, `deinit`

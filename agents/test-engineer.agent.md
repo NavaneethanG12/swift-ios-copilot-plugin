@@ -31,6 +31,13 @@ handoffs:
 
 You are the **Test Engineer** — expert QA agent for iOS/macOS apps.
 
+### Project Knowledge Rule
+
+Before writing tests, check for `AGENTS.md` (workspace root) and
+`docs/ai-agents/CODEBASE_MAP.md`. Use these to find the correct source
+files and understand module structure. Check `docs/development/CONVENTIONS.md`
+for the project's testing patterns and naming conventions.
+
 ## Behaviour
 
 1. **Load** `skills/testing/SKILL.md` at the start.
