@@ -2,7 +2,8 @@
 
 Token-efficient VS Code Copilot plugin for **iOS/iPadOS/macOS development**.
 Orchestrator agent (`ios-copilot`) classifies your prompt, restructures it
-for clarity, and routes to 7 specialist agents backed by 24 compact skills.
+for clarity, and routes to 7 specialist agents backed by 28 compact skills.
+Includes 7 slash commands for common workflows.
 
 ## How it Works
 
@@ -13,41 +14,45 @@ You type anything → ios-copilot (orchestrator)
                         ├── 2. Classifies intent (build/crash/review/test/...)
                         ├── 3. Knowledge check:
                         │      ├── Skills cover it? → Proceed
-                        │      └── Gap? → Asks YOU: "May I check the web for [topic]?"
-                        │           ├── You say yes → Fetches, gathers key info
-                        │           └── You say no  → Proceeds with local skills
+                        │      └── Gap? → Searches web automatically for undocumented topics
                         │
                         └── 4. Routes to the right specialist:
-                              ├── app-builder      (build, UI, deploy)
-                              ├── ios-architect     (design, refactor)
-                              ├── swift-reviewer    (review, debug, fix)
-                              ├── test-engineer     (tests, mocks)
-                              ├── crash-analyst     (crash logs)
-                              ├── memory-profiler   (leaks, OOM)
-                              └── security-auditor  (vulnerabilities)
+                              ├── app-builder      (build, UI, deploy, fix, perf)
+                              ├── ios-architect     (design, refactor, plan)
+                              ├── swift-reviewer    (review, code quality)
+                              ├── test-engineer     (tests, mocks, coverage)
+                              ├── crash-analyst     (crash logs, diagnosis)
+                              ├── memory-profiler   (leaks, OOM, retain cycles)
+                              └── security-auditor  (vulnerabilities, OWASP)
                                      │
-                                     ├── Specialist loads relevant skills
+                                     ├── Specialist loads 1–3 relevant skills (28 available)
                                      ├── Applies Code Integrity Rules (R1–R9)
                                      ├── Applies Memory Leak Prevention (M1–M7)
                                      ├── Verifies integration (Phase 3.5)
                                      ├── Does the work
                                      └── Offers handoff buttons:
                                            [Write Tests] [Review Code] [New Task ↩]
+
+Slash commands (skip orchestrator):
+  /audit-code  /audit-memory  /audit-security  /audit-performance
+  /audit-hangs  /fix-build  /qa-check
 ```
 
 ## What's included
 
-### Skills (24)
+### Skills (28)
 
 | Category | Name | Purpose |
 |---|---|---|
 | **Build** | `project-scaffolding` | Project setup, folder structures, SPM, build settings |
 | **Build** | `swiftui-development` | State management, navigation, views, animations |
+| **Build** | `uikit-development` | UIViewController lifecycle, programmatic Auto Layout, UITableView, UICollectionView |
 | **Build** | `networking` | API client, endpoints, retry, auth, ATS |
 | **Build** | `data-persistence` | SwiftData, Keychain, UserDefaults, file storage |
 | **Build** | `architecture-patterns` | MVVM, TCA, DI, Coordinator, SPM modules |
 | **Build** | `design-system` | Color tokens, typography, spacing, OSLog, error handling |
 | **Quality** | `swift-code-review` | 9-dimension review checklist (incl. compilation safety, wiring completeness) |
+| **Quality** | `compiler-errors` | Diagnose and fix Swift/Xcode build errors with xcodebuild capture + known solution matching |
 | **Quality** | `testing` | Swift Testing, XCTest, mocking, coverage strategy |
 | **Quality** | `ios-debugging` | Crashes, UI, networking, memory, build errors |
 | **Quality** | `crash-diagnosis` | §A–§H crash classification, symbolication |
@@ -59,6 +64,8 @@ You type anything → ios-copilot (orchestrator)
 | **Ship** | `localization` | String Catalogs, formatters, RTL, plural rules |
 | **Ship** | `ci-cd` | Xcode Cloud, GitHub Actions, Fastlane |
 | **Ship** | `app-store-submission` | Code signing, TestFlight, App Review, metadata |
+| **Workflow** | `feature-docs` | Generate feature documentation and QA test reports as Markdown |
+| **Workflow** | `git-assistant` | Analyze git changes, impact reports, conventional commit messages |
 | **Platform** | `platform-adaptation` | iPadOS sidebar, macOS MenuBarExtra, multi-platform |
 | **Platform** | `push-notifications` | APNs, local/remote, categories, rich notifications |
 | **Platform** | `storekit` | StoreKit 2 purchases, subscriptions, transaction listener |
@@ -81,30 +88,77 @@ You type anything → ios-copilot (orchestrator)
 
 All specialists have a **[New Task]** handoff button that returns to the orchestrator.
 
-### Hooks (2)
+### Slash Commands (7)
 
-| Hook | Action |
-|---|---|
-| `PostToolUse` | Auto-formats edited `.swift` files with `swift-format` |
-| `SessionStart` | Prints welcome banner with all skills and agents |
+| Command | Agent | Purpose |
+|---|---|---|
+| `/audit-code` | swift-reviewer | Review codebase for quality, correctness, best practices (all 9 dimensions) |
+| `/audit-hangs` | app-builder | Detect main thread hangs, hitches, UI responsiveness issues |
+| `/audit-memory` | memory-profiler | Scan project for memory leaks, retain cycles, unbounded growth (Phases 1–4) |
+| `/audit-performance` | app-builder | Full performance audit — launch time, scroll, memory, app size |
+| `/audit-security` | security-auditor | Audit for OWASP Mobile Top 10 vulnerabilities |
+| `/fix-build` | app-builder | Fix all compiler/build errors (Phase 0.75 with compiler-errors skill) |
+| `/qa-check` | ios-copilot | Full QA pipeline — code review, tests, generate report at `docs/reports/qa-report.md` |
+
+### Hooks (3)
+
+| Hook | Trigger | Action |
+|---|---|---|
+| `SessionStart` | New agent session begins | Prints welcome banner with plugin version, skills, and agents |
+| `PostToolUse` | After file write/edit | Auto-formats edited `.swift` files with `swift-format` |
+| `PreCompact` | Before context compaction | Extracts session state (files, decisions, errors) to `.github/session-context.md` |
+
+### Scripts & Utilities
+
+| Script | Location | Purpose |
+|---|---|---|
+| `session-start.sh` | `scripts/` | Welcome banner, reads version from `plugin.json`, checks for codebase map |
+| `post-edit.sh` | `scripts/` | Parses tool output, runs `swift-format --in-place` on edited `.swift` files |
+| `pre-compact.sh` | `scripts/` | Extracts key context from transcript JSON for context survival across compaction |
+| `xcode-build-errors.sh` | `skills/compiler-errors/` | Runs xcodebuild, captures and structures compiler errors for Phase 0.75 |
+| `git-report.sh` | `skills/git-assistant/` | Gathers git status, diffs, commit log for change analysis |
+| `debug-checklist.md` | `skills/ios-debugging/` | Quick failure-type classification reference |
+| `arc-checklist.md` | `skills/memory-management/` | Quick memory audit reference for retain cycles and growth |
 
 ## Installation
 
-Add to your VS Code `settings.json`:
+### Option 1: Local Install via VS Code Settings (Recommended)
 
-```json
-"chat.pluginLocations": {
-    "/path/to/SwiftCopilotPlugin": true
-}
-```
+1. Clone or download this repository to your machine:
+   ```bash
+   git clone https://github.com/<your-org>/SwiftCopilotPlugin.git ~/SwiftCopilotPlugin
+   ```
 
-Or run **Chat: Install Plugin From Source** from the Command Palette.
+2. Open VS Code **Settings (JSON)** — press `⌘⇧P` → **Preferences: Open User Settings (JSON)**.
+
+3. Add these two entries:
+   ```jsonc
+   {
+     "chat.plugins.enabled": true,
+     "chat.pluginLocations": {
+       "/Users/<you>/SwiftCopilotPlugin": true   // ← full path to the cloned folder
+     }
+   }
+   ```
+   Replace `/Users/<you>/SwiftCopilotPlugin` with the **absolute path** where you cloned the repo.
+
+4. Reload VS Code (`⌘⇧P` → **Developer: Reload Window**).
+
+5. Open Copilot Chat — you should see the plugin's agents (`ios-copilot`, `app-builder`, etc.) in the agent picker.
+
+### Option 2: Install From Source via Command Palette
+
+1. Press `⌘⇧P` and run **Chat: Install Chat Plugin from Source…**
+2. Browse to the folder containing `plugin.json` (the root of this repo).
+3. VS Code registers the plugin automatically — no `settings.json` edit needed.
+
+> **Tip:** Option 2 does the same thing as Option 1 but through a UI dialog. The resulting entry still appears in `chat.pluginLocations` in your settings.
 
 ### Requirements
 
-- VS Code with GitHub Copilot
-- `chat.plugins.enabled: true`
-- *(Optional)* [`swift-format`](https://github.com/apple/swift-format) on PATH
+- VS Code with **GitHub Copilot** extension installed
+- `chat.plugins.enabled` set to `true` in settings
+- *(Optional)* [`swift-format`](https://github.com/apple/swift-format) on PATH — enables the auto-format hook
 
 ## Usage
 
@@ -132,6 +186,22 @@ For quick lookups, skip the agents entirely:
 /crash-diagnosis [paste crash log]
 /storekit auto-renewable subscription setup
 /platform-adaptation adapt my app for iPadOS sidebar
+/uikit-development compositional layout for a photo grid
+/compiler-errors fix linker errors in my project
+```
+
+### Slash Commands
+
+Run common workflows directly without going through the orchestrator:
+
+```
+/audit-code         → Full 9-dimension code review
+/audit-memory       → Workspace-wide memory leak scan
+/audit-security     → OWASP Mobile Top 10 audit
+/audit-performance  → Launch time, scroll, app size audit
+/audit-hangs        → Main thread hang detection
+/fix-build          → Capture and fix all compiler errors
+/qa-check           → Full QA pipeline with report
 ```
 
 ### Agents
@@ -172,9 +242,7 @@ You: "scan this project for memory leaks"
 **Third-party library** (web knowledge needed):
 ```
 You: "integrate Firebase Auth into my app"
-→ ios-copilot: "I'd like to check Firebase Auth docs. Shall I?"
-→ You: "yes"
-→ ios-copilot fetches → routes to app-builder with Firebase knowledge
+→ ios-copilot searches web for Firebase Auth docs → routes to app-builder with Firebase knowledge
 ```
 
 ## Code Quality Guarantees
@@ -215,8 +283,8 @@ and data flow end-to-end before moving forward.
 ### Web Knowledge Check
 
 When skills don't cover a topic (third-party libraries, new APIs, specific
-frameworks), the orchestrator and specialists **ask your permission** before
-fetching from the web. No silent web access — you always approve first.
+frameworks), the orchestrator automatically searches the web to gather
+relevant context before routing to a specialist.
 
 ## Token Efficiency
 
@@ -232,6 +300,7 @@ A typical interaction loads 1 agent + 1–3 skills ≈ 3,000–5,000 tokens of p
 
 | Version | Skills | Agents | Changes |
 |---|---|---|---|
+| 4.10.0 | 28 | 8 | +4 skills (uikit-development, compiler-errors, feature-docs, git-assistant), +7 slash commands, +PreCompact hook, auto web search (no permission gate), utility scripts |
 | 4.4.0 | 24 | 8 | Web knowledge check with user permission gate — orchestrator and specialists ask before fetching |
 | 4.3.1 | 24 | 8 | R9 (explicit `self` in closures), `[weak self]` + `guard let self` pattern enforced everywhere |
 | 4.3.0 | 24 | 8 | Memory leak prevention (M1–M7), workspace-wide leak audit mode, LeakSanitizer/Instruments guides |
